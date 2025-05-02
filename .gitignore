@@ -23,3 +23,6 @@ data.json
 
 # Exclude the built main.js file
 /main.js
+
+/dist/
+.aider*
