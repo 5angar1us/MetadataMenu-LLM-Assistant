@@ -5,6 +5,7 @@ import { APIProvider, ProviderConfig, StructuredOutput } from 'utils/interface';
 import { Custom } from './Custom';
 import { OpenAI } from './OpenAI';
 import { OpenRouter } from './OpenRouter';
+import { OpenAICustom } from './OpenAICustom';
 
 interface ApiTestResult {
 	success: boolean;
@@ -19,6 +20,8 @@ export const getProvider = (providerName: string): APIProvider => {
 			return new Custom();
 		case AIProvider.OpenRouter:
 			return new OpenRouter();
+		case AIProvider.OpenAICustom:
+			return new OpenAICustom();
 		default:
 			throw new Error(`Unknown AI provider: ${providerName}`);
 	}

@@ -4,6 +4,7 @@ import { ProviderConfig } from 'utils/interface';
 import { validateAPIKey } from 'api';
 import AutoClassifierPlugin from 'main';
 import { getDefaultEndpoint } from 'utils';
+import { AIProvider } from 'utils/constant';
 
 export class Api {
 	protected plugin: AutoClassifierPlugin;
@@ -26,7 +27,7 @@ export class Api {
 		const selectedProvider = this.getSelectedProvider();
 		this.addModelSetting(containerEl, selectedProvider);
 
-		if (selectedProvider.name === 'Custom') {
+		if (selectedProvider.name === AIProvider.Custom || selectedProvider.name === AIProvider.OpenAICustom) {
 			// Add custom provider guidance section
 			const customGuide = containerEl.createEl('div', { cls: 'custom-provider-guide' });
 			customGuide.createEl('h3', {
@@ -35,7 +36,9 @@ export class Api {
 			});
 
 			this.addBaseURLSetting(containerEl, selectedProvider);
-			this.addEndpointSetting(containerEl, selectedProvider);
+			if (selectedProvider.name === AIProvider.Custom){
+				this.addEndpointSetting(containerEl, selectedProvider);
+			}
 		} else {
 			this.addEndpointSetting(containerEl, selectedProvider);
 		}
@@ -82,7 +85,7 @@ export class Api {
 				const defaultEndpoint = getDefaultEndpoint(selectedProvider.name);
 				return text
 					.setPlaceholder(defaultEndpoint)
-					.setValue(selectedProvider?.endpoint || '')
+					.setValue(selectedProvider?.endpoint)
 					.onChange(async (value) => {
 						selectedProvider.endpoint = value;
 						await this.plugin.saveSettings();
@@ -140,29 +143,30 @@ export class Api {
 				return textComponent;
 			})
 			.addButton((button) =>
-				button.setButtonText('Test').onClick(async () => {
-					button.setButtonText('Testing...');
-					button.setDisabled(true);
+				button.setButtonText('Test')
+					.onClick(async () => {
+						button.setButtonText('Testing...');
+						button.setDisabled(true);
 
-					const testResult = await validateAPIKey(selectedProvider);
+						const testResult = await validateAPIKey(selectedProvider);
 
-					apiKeySetting.setDesc(testResult.message);
-					apiKeySetting.descEl.classList.add(
-						testResult.success ? 'api-test-success' : 'api-test-error'
-					);
+						apiKeySetting.setDesc(testResult.message);
+						apiKeySetting.descEl.classList.add(
+							testResult.success ? 'api-test-success' : 'api-test-error'
+						);
 
-					button.setButtonText('Test');
-					button.setDisabled(false);
+						button.setButtonText('Test');
+						button.setDisabled(false);
 
-					await this.plugin.saveSettings();
-				})
+						await this.plugin.saveSettings();
+					})
 			);
 	}
 
 	private addModelSetting(containerEl: HTMLElement, selectedProvider: ProviderConfig): void {
 		const setting = new Setting(containerEl).setName('Model').setDesc('Select the model to use');
 
-		if (selectedProvider.name === 'Custom') {
+		if (selectedProvider.name === AIProvider.Custom || selectedProvider.name === AIProvider.OpenAICustom) {
 			setting.addText((text) => {
 				const currentModel = selectedProvider.models[0]?.name;
 				return text
@@ -210,7 +214,7 @@ export class Api {
 			.addText((text) =>
 				text
 					.setPlaceholder('https://api.example.com')
-					.setValue(selectedProvider.baseUrl || '')
+					.setValue(selectedProvider.baseUrl)
 					.onChange(async (value) => {
 						selectedProvider.baseUrl = value;
 						await this.plugin.saveSettings();

@@ -13,7 +13,9 @@ const DEFAULT_TEMPERATURE = 0.7;
 export enum AIProvider {
 	OpenAI = 'OpenAI',
 	Custom = 'Custom',
+	OpenAICustom = 'OpenAICustom',
 	OpenRouter = 'OpenRouter',
+
 }
 
 export enum OpenAIModelName {
@@ -76,6 +78,22 @@ export const CUSTOM_PROVIDER: ProviderConfig = {
 	testResult: null,
 	selectedModel: '',
 };
+
+export const OPENAI_CUSTOM_PROVIDER: ProviderConfig = {
+	name: AIProvider.OpenAICustom,
+	apiKey: '',
+	baseUrl: '',
+	endpoint: '/v1/chat/completions',
+	models: [
+		{
+			name: '',
+		},
+	],
+	lastTested: null,
+	testResult: null,
+	selectedModel: '',
+}
+
 export const DEFAULT_TAG_SETTING: FrontmatterTemplate = {
 	id: 0,
 	name: 'tags',
@@ -87,7 +105,7 @@ export const DEFAULT_TAG_SETTING: FrontmatterTemplate = {
 
 // Default settings for the Auto Classifier plugin
 export const DEFAULT_SETTINGS: AutoClassifierSettings = {
-	providers: [OPENAI_PROVIDER, CUSTOM_PROVIDER, OPENROUTER_PROVIDER],
+	providers: [OPENAI_PROVIDER, CUSTOM_PROVIDER, OPENROUTER_PROVIDER, OPENAI_CUSTOM_PROVIDER],
 	selectedProvider: AIProvider.OpenAI,
 	selectedModel: OpenAIModelName.GPT_4_1_MINI,
 	frontmatter: [DEFAULT_TAG_SETTING],
