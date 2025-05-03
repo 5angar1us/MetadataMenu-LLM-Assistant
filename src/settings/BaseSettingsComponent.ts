@@ -1,7 +1,7 @@
 import { Setting } from 'obsidian';
 
-import { FrontmatterTemplate } from 'utils/interface';
 import AutoClassifierPlugin from '../main';
+import { FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
 
 export interface SettingsComponent {
 	display(containerEl: HTMLElement, frontmatterId?: number): void;

@@ -1,11 +1,13 @@
-import { getHeaders, getRequestParam } from 'api';
-import { requestUrl, RequestUrlParam } from 'obsidian';
-import { APIProvider, StructuredOutput } from 'utils/interface';
-import { ApiError } from '../error/ApiError';
-import { OPENAI_STRUCTURE_OUTPUT } from '../utils/constant';
-import { ProviderConfig } from '../utils/interface';
 
-export class OpenAI implements APIProvider {
+import { ApiError } from 'error/ApiError';
+import { requestUrl, RequestUrlParam } from 'obsidian';
+import { BaseAPIProvider } from './BaseAPIProvider';
+import { getHeaders, getRequestParam } from '.';
+import { LMSTUDIO_STRUCTURE_OUTPUT } from 'Providers/ProvidersSetup/CustomAIProvider';
+import { ProviderConfig, StructuredOutput } from 'Providers/ProvidersSetup/shared/Types';
+
+
+export class Custom extends BaseAPIProvider {
 	async callAPI(
 		system_role: string,
 		user_prompt: string,
@@ -15,7 +17,7 @@ export class OpenAI implements APIProvider {
 	): Promise<StructuredOutput> {
 		const headers: Record<string, string> = getHeaders(provider.apiKey);
 
-		// Create messages array for the OpenAI API
+		// Create messages array for the API
 		const messages = [
 			{ role: 'system', content: system_role },
 			{ role: 'user', content: user_prompt },
@@ -26,7 +28,7 @@ export class OpenAI implements APIProvider {
 			model: selectedModel,
 			messages: messages,
 			temperature: temperature || provider.temperature,
-			response_format: OPENAI_STRUCTURE_OUTPUT,
+			response_format: LMSTUDIO_STRUCTURE_OUTPUT,
 		};
 
 		const response = await this.makeApiRequest(provider, headers, data);
@@ -40,6 +42,7 @@ export class OpenAI implements APIProvider {
 	): Promise<any> {
 		const url = `${provider.baseUrl}${provider.endpoint}`;
 		const requestParam: RequestUrlParam = getRequestParam(url, headers, JSON.stringify(data));
+		console.log('Custom API Request:', JSON.stringify(data, null, 2));
 
 		try {
 			const response = await requestUrl(requestParam);
@@ -58,7 +61,7 @@ export class OpenAI implements APIProvider {
 		// Handle different response formats from various models
 		const messageContent = responseData.choices[0].message.content;
 
-		// Some newer models might return parsed JSON directly
+		// Some models might return parsed JSON directly
 		if (typeof messageContent === 'object' && messageContent !== null) {
 			return messageContent as StructuredOutput;
 		}
@@ -66,15 +69,5 @@ export class OpenAI implements APIProvider {
 		// Otherwise parse the content as JSON
 		const content = messageContent.trim();
 		return JSON.parse(content) as StructuredOutput;
-	}
-
-	async verifyConnection(provider: ProviderConfig): Promise<boolean> {
-		await this.callAPI(
-			'You are a test system. You must respond with valid JSON.',
-			'Return a JSON object containing {"output": [], "reliability": 0}',
-			provider,
-			provider.models[0]?.name
-		);
-		return true;
 	}
 }

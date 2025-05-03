@@ -1,11 +1,12 @@
 import { ErrorHandler } from 'error/ErrorHandler';
 import { RequestUrlParam } from 'obsidian';
-import { AIProvider } from 'utils/constant';
-import { APIProvider, ProviderConfig, StructuredOutput } from 'utils/interface';
-import { Custom } from './Custom';
 import { OpenAI } from './OpenAI';
+import { Custom } from './Custom';
 import { OpenRouter } from './OpenRouter';
 import { OpenAICustom } from './OpenAICustom';
+import { AIProvider } from 'Providers/ProvidersSetup';
+import { APIProvider, ProviderConfig, StructuredOutput } from 'Providers/ProvidersSetup/shared/Types';
+
 
 interface ApiTestResult {
 	success: boolean;

@@ -1,10 +1,12 @@
-import { getHeaders, getRequestParam } from 'api';
-import { ApiError } from 'error/ApiError';
-import { requestUrl, RequestUrlParam } from 'obsidian';
-import { LMSTUDIO_STRUCTURE_OUTPUT } from 'utils/constant';
-import { APIProvider, ProviderConfig, StructuredOutput } from 'utils/interface';
 
-export class Custom implements APIProvider {
+import { requestUrl, RequestUrlParam } from 'obsidian';
+import { getHeaders, getRequestParam } from '.';
+import { BaseAPIProvider } from './BaseAPIProvider';
+import { OPENAI_STRUCTURE_OUTPUT } from 'Providers/ProvidersSetup/OpenAIProvider';
+import { ApiError } from 'error/ApiError';
+import { ProviderConfig, StructuredOutput } from 'Providers/ProvidersSetup/shared/Types';
+
+export class OpenAI extends BaseAPIProvider {
 	async callAPI(
 		system_role: string,
 		user_prompt: string,
@@ -14,7 +16,7 @@ export class Custom implements APIProvider {
 	): Promise<StructuredOutput> {
 		const headers: Record<string, string> = getHeaders(provider.apiKey);
 
-		// Create messages array for the API
+		// Create messages array for the OpenAI API
 		const messages = [
 			{ role: 'system', content: system_role },
 			{ role: 'user', content: user_prompt },
@@ -25,7 +27,7 @@ export class Custom implements APIProvider {
 			model: selectedModel,
 			messages: messages,
 			temperature: temperature || provider.temperature,
-			response_format: LMSTUDIO_STRUCTURE_OUTPUT,
+			response_format: OPENAI_STRUCTURE_OUTPUT,
 		};
 
 		const response = await this.makeApiRequest(provider, headers, data);
@@ -39,7 +41,6 @@ export class Custom implements APIProvider {
 	): Promise<any> {
 		const url = `${provider.baseUrl}${provider.endpoint}`;
 		const requestParam: RequestUrlParam = getRequestParam(url, headers, JSON.stringify(data));
-		console.log('Custom API Request:', JSON.stringify(data, null, 2));
 
 		try {
 			const response = await requestUrl(requestParam);
@@ -58,7 +59,7 @@ export class Custom implements APIProvider {
 		// Handle different response formats from various models
 		const messageContent = responseData.choices[0].message.content;
 
-		// Some models might return parsed JSON directly
+		// Some newer models might return parsed JSON directly
 		if (typeof messageContent === 'object' && messageContent !== null) {
 			return messageContent as StructuredOutput;
 		}
@@ -71,7 +72,7 @@ export class Custom implements APIProvider {
 	async verifyConnection(provider: ProviderConfig): Promise<boolean> {
 		await this.callAPI(
 			'You are a test system. You must respond with valid JSON.',
-			`Return a JSON object containing {"output": [], "reliability": 0}`,
+			'Return a JSON object containing {"output": [], "reliability": 0}',
 			provider,
 			provider.models[0]?.name
 		);

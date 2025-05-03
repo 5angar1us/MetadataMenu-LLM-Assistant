@@ -1,13 +1,16 @@
 import { getAllTags, getFrontMatterInfo, MetadataCache, TFile } from 'obsidian';
+import { DEFAULT_FRONTMATTER_SETTING } from 'settings/DefaultSettings';
+import { FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
 
 import { generateId } from 'utils';
-import { DEFAULT_FRONTMATTER_SETTING } from 'utils/constant';
 import {
 	FrontMatter,
-	FrontmatterTemplate,
 	InsertFrontMatterParams,
+	LinkType,
 	ProcessFrontMatterFn,
 } from 'utils/interface';
+
+export const TAG_FRONMATTER_NAME = 'tags';
 
 /**
  * Extracts the content of a markdown file excluding frontmatter
@@ -52,7 +55,7 @@ export const getFrontmatterSetting = (
 };
 
 export const addFrontmatterSetting = (
-	linkType: 'Normal' | 'WikiLink' = 'Normal'
+	linkType: LinkType = 'Normal'
 ): FrontmatterTemplate => {
 	return {
 		...DEFAULT_FRONTMATTER_SETTING,
@@ -67,8 +70,7 @@ export const insertToFrontMatter = async (
 ): Promise<void> => {
 	await processFrontMatter(params.file, (frontmatter: FrontMatter) => {
 		// Ensure values are in raw format for processing (API context)
-		const rawValues =
-			params.linkType === 'WikiLink' ? params.value.map((item) => `[[${item}]]`) : params.value;
+		const rawValues = formatValuesByLinkType(params.value, params.linkType);
 
 		const existingRawValues = frontmatter[params.key] || [];
 		// Combine values based on overwrite setting
@@ -81,3 +83,13 @@ export const insertToFrontMatter = async (
 		frontmatter[params.key] = combinedRawValues;
 	});
 };
+
+export function formatValuesByLinkType(values: string[], linkType: LinkType = 'Normal'): string[] {
+    return linkType === 'WikiLink' 
+        ? values.map(item => `[[${item}]]`) 
+        : values;
+}
+
+export function isTagsFrontmatterTemplate(frontmatterTemplate: FrontmatterTemplate){
+	return frontmatterTemplate.name === TAG_FRONMATTER_NAME;
+}

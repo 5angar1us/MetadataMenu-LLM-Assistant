@@ -1,12 +1,12 @@
 import { Setting } from 'obsidian';
-import { ProviderConfig } from 'utils/interface';
 
-import { validateAPIKey } from 'api';
 import AutoClassifierPlugin from 'main';
 import { getDefaultEndpoint } from 'utils';
-import { AIProvider } from 'utils/constant';
+import { validateAPIKey } from 'Providers/api';
+import { AIProvider } from 'Providers/ProvidersSetup';
+import { ProviderConfig } from 'Providers/ProvidersSetup/shared/Types';
 
-export class Api {
+export class ApiComponent {
 	protected plugin: AutoClassifierPlugin;
 	constructor(plugin: AutoClassifierPlugin) {
 		this.plugin = plugin;

@@ -1,8 +1,9 @@
 import { getFrontmatterSetting } from 'frontmatter';
 
 import { BaseSettingsComponent } from './BaseSettingsComponent';
-import { DEFAULT_TAG_SETTING } from 'utils/constant';
-export class Tag extends BaseSettingsComponent {
+import { DEFAULT_TAG_SETTING } from './DefaultSettings';
+
+export class TagComponent extends BaseSettingsComponent {
 	display(containerEl: HTMLElement): void {
 		containerEl.empty();
 		this.addTagSettings(containerEl);

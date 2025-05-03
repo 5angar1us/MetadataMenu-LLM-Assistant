@@ -1,12 +1,13 @@
 import AutoClassifierPlugin from 'main';
 import { PluginSettingTab, setIcon } from 'obsidian';
 
-import { addFrontmatterSetting } from 'frontmatter';
+import { addFrontmatterSetting, isTagsFrontmatterTemplate } from 'frontmatter';
 
-import { FrontmatterTemplate, ProviderConfig } from 'utils/interface';
-import { Api } from './Api';
-import { Frontmatter } from './Frontmatter';
-import { Tag } from './Tag';
+import { ApiComponent } from './ApiComponent';
+import { FrontmatterComponent } from './FrontmatterComponent';
+import { TagComponent } from './TagComponent';
+import { FrontmatterTemplate, ProviderConfig } from 'Providers/ProvidersSetup/shared/Types';
+import { LinkType } from 'utils/interface';
 
 export interface AutoClassifierSettings {
 	providers: ProviderConfig[];
@@ -17,16 +18,16 @@ export interface AutoClassifierSettings {
 
 export class AutoClassifierSettingTab extends PluginSettingTab {
 	plugin: AutoClassifierPlugin;
-	apiSetting: Api;
-	tagSetting: Tag;
-	frontmatterSetting: Frontmatter;
+	apiSetting: ApiComponent;
+	tagSetting: TagComponent;
+	frontmatterSetting: FrontmatterComponent;
 	constructor(plugin: AutoClassifierPlugin) {
 		super(plugin.app, plugin);
 		this.plugin = plugin;
 
-		this.apiSetting = new Api(plugin);
-		this.tagSetting = new Tag(plugin);
-		this.frontmatterSetting = new Frontmatter(plugin);
+		this.apiSetting = new ApiComponent(plugin);
+		this.tagSetting = new TagComponent(plugin);
+		this.frontmatterSetting = new FrontmatterComponent(plugin);
 	}
 
 	display(): void {
@@ -66,7 +67,7 @@ export class AutoClassifierSettingTab extends PluginSettingTab {
 		const frontmattersContainer = fmSectionContainer.createDiv({ cls: 'frontmatters-container' });
 
 		this.plugin.settings.frontmatter.forEach((frontmatter) => {
-			if (frontmatter.name !== 'tags') {
+			if (!isTagsFrontmatterTemplate(frontmatter)) {
 				const frontmatterContainer = frontmattersContainer.createDiv({
 					cls: 'frontmatter-container',
 				});
@@ -76,7 +77,7 @@ export class AutoClassifierSettingTab extends PluginSettingTab {
 		});
 	}
 
-	private addNewFrontmatter(containerEl: HTMLElement, linkType: 'Normal' | 'WikiLink'): void {
+	private addNewFrontmatter(containerEl: HTMLElement, linkType: LinkType): void {
 		const newFrontmatter = addFrontmatterSetting(linkType);
 		this.plugin.settings.frontmatter.push(newFrontmatter);
 		this.plugin.saveSettings();
@@ -102,4 +103,4 @@ export class AutoClassifierSettingTab extends PluginSettingTab {
 }
 
 export * from './SelectFrontmatterModal';
-export * from './WikiLinkSelector';
+export * from './WikiLinkSuggestModal';

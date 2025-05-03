@@ -1,0 +1,1 @@
+export const DEFAULT_TEMPERATURE = 0.7 as const; // Range: 0 - 1

@@ -1,11 +1,12 @@
 import { getFrontmatterSetting } from 'frontmatter';
 import { setIcon } from 'obsidian';
 
-import { FrontmatterTemplate } from 'utils/interface';
 import { BaseSettingsComponent } from './BaseSettingsComponent';
+import { FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
+import { LinkType } from 'utils/interface';
 import { WikiLinkSelector } from './WikiLinkSelector';
 
-export class Frontmatter extends BaseSettingsComponent {
+export class FrontmatterComponent extends BaseSettingsComponent {
 	display(containerEl: HTMLElement, frontmatterId: number): void {
 		containerEl.empty();
 
@@ -52,7 +53,7 @@ export class Frontmatter extends BaseSettingsComponent {
 
 		// 변경 핸들러
 		select.addEventListener('change', async () => {
-			const newLinkType = select.value as 'Normal' | 'WikiLink';
+			const newLinkType = select.value as LinkType;
 
 			frontmatterSetting.linkType = newLinkType;
 			await this.plugin.saveSettings();
