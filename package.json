@@ -29,7 +29,9 @@
 		"esbuild-plugin-clean": "^1.0.1",
 		"esbuild-plugin-copy": "^2.1.1",
 		"eslint": "^8.0.0",
+		"Metadata-menu": "github:mdelobelle/metadatamenu",
 		"obsidian": "latest",
+		"obsidian-dataview": "^0.5.68",
 		"tslib": "2.6.2",
 		"typescript": "5.4.5"
 	},

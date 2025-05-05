@@ -1,17 +1,29 @@
-import { Notice, Plugin, TFile } from 'obsidian';
+import { App, Notice, Plugin, TFile } from 'obsidian';
 import { AutoClassifierSettings, AutoClassifierSettingTab, SelectFrontmatterModal } from './settings';
 import { FrontmatterTemplate, ProviderConfig } from 'Providers/ProvidersSetup/shared/Types';
 import { DEFAULT_SETTINGS } from 'settings/DefaultSettings';
 import { processAllFrontmatter, processFrontmatter } from 'handle';
 import { mergeDefaults } from 'utils/merge-settings';
 import { isTagsFrontmatterTemplate } from 'frontmatter';
+import { checkPluginAvailability, GetMetadataMenuApi } from 'PluginAvailability';
+import { getAPI, DataviewApi } from "obsidian-dataview";
 
 export default class AutoClassifierPlugin extends Plugin {
 	settings: AutoClassifierSettings;
 
 	async onload() {
 		await this.loadSettings();
+
+		this.app.workspace.onLayoutReady(() => {
+			const dataviewAvailable = checkPluginAvailability(this.app, "dataview", "Dataview");
+			const metadataMenuAvailable = checkPluginAvailability(this.app, "metadata-menu", "Metadata Menu");
+		});
+
 		this.setupCommand();
+
+		const dvapi = getAPI(this.app)!;
+		const mmapi = GetMetadataMenuApi(this.app);
+
 		this.addSettingTab(new AutoClassifierSettingTab(this));
 	}
 
@@ -96,4 +108,5 @@ export default class AutoClassifierPlugin extends Plugin {
 
 
 }
+
 
