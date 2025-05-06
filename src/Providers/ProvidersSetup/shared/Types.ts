@@ -1,4 +1,4 @@
-import { LinkType } from "utils/interface";
+import { type LinkType } from "utils/interface";
 
 export interface ProviderConfig {
     name: string;

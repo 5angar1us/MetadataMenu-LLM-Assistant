@@ -1,6 +1,6 @@
-
-import { APIProvider, ProviderConfig, StructuredOutput } from "Providers/ProvidersSetup/shared/Types";
+import type { APIProvider, ProviderConfig, StructuredOutput } from "Providers/ProvidersSetup/shared/Types";
 import { tryCatch } from "utils/ErrorHandling";
+
 
 export abstract class BaseAPIProvider implements APIProvider {
     abstract  callAPI(

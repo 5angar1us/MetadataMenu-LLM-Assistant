@@ -1,10 +1,11 @@
-import { formatValuesByLinkType, getContentWithoutFrontmatter, getTags, insertToFrontMatter, isTagsFrontmatterTemplate } from "frontmatter";
-import AutoClassifierPlugin from "main";
-import { App, Notice, TFile } from "obsidian";
+import { isTagsFrontmatterTemplate, getTags, getContentWithoutFrontmatter, insertToFrontMatter, formatValuesByLinkType } from "frontmatter";
+import type AutoClassifierPlugin from "main";
+import { Notice, TFile, App } from "obsidian";
 import { processAPIRequest } from "Providers/api";
-import { FrontmatterTemplate, ProviderConfig } from "Providers/ProvidersSetup/shared/Types";
-import { AutoClassifierSettings } from "settings";
-import { DEFAULT_CHAT_ROLE, getPromptTemplate } from "utils/templates";
+import type { ProviderConfig, FrontmatterTemplate } from "Providers/ProvidersSetup/shared/Types";
+import type { AutoClassifierSettings } from "settings";
+import { getPromptTemplate, DEFAULT_CHAT_ROLE } from "utils/templates";
+
 
 
 export async function processAllFrontmatter(plugin: AutoClassifierPlugin): Promise<void> {
@@ -80,7 +81,7 @@ export async function processFrontmatterItem(
 
     if (apiResponse && apiResponse.reliability > 0.2) {
         const processFrontMatter = (file: TFile, fn: (frontmatter: any) => void) =>
-            app.fileManager.processFrontMatter(file, fn);
+            plugin.app.fileManager.processFrontMatter(file, fn);
 
         await insertToFrontMatter(processFrontMatter, {
             file: currentFile,

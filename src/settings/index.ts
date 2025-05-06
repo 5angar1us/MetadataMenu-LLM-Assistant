@@ -6,8 +6,9 @@ import { addFrontmatterSetting, isTagsFrontmatterTemplate } from 'frontmatter';
 import { ApiComponent } from './ApiComponent';
 import { FrontmatterComponent } from './FrontmatterComponent';
 import { TagComponent } from './TagComponent';
-import { FrontmatterTemplate, ProviderConfig } from 'Providers/ProvidersSetup/shared/Types';
-import { LinkType } from 'utils/interface';
+import type { ProviderConfig, FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
+import type { LinkType } from 'utils/interface';
+
 
 export interface AutoClassifierSettings {
 	providers: ProviderConfig[];

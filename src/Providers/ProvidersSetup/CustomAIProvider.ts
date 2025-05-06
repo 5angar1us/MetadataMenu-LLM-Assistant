@@ -1,5 +1,5 @@
 import { AIProvider } from ".";
-import { ProviderConfig } from "./shared/Types";
+import { type ProviderConfig } from "./shared/Types";
 
 export const CUSTOM_PROVIDER: ProviderConfig = {
     name: AIProvider.Custom,

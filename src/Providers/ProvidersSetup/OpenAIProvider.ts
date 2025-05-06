@@ -1,6 +1,6 @@
 import { DEFAULT_TEMPERATURE } from "Providers/Const";
 import { AIProvider } from ".";
-import { ProviderConfig } from "./shared/Types";
+import type { ProviderConfig } from "./shared/Types";
 
 export enum OpenAIModelName {
     GPT_4_1 = 'gpt-4.1',

@@ -4,8 +4,8 @@ import { CUSTOM_PROVIDER } from 'Providers/ProvidersSetup/CustomAIProvider';
 import { OPENAI_CUSTOM_PROVIDER } from 'Providers/ProvidersSetup/OpenAICompotabilityProvider';
 import { OPENAI_PROVIDER, OpenAIModelName } from 'Providers/ProvidersSetup/OpenAIProvider';
 import { OPENROUTER_PROVIDER } from 'Providers/ProvidersSetup/OpenRouterProvider';
-import { FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
-import { AutoClassifierSettings } from 'settings';
+import type { FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
+import type { AutoClassifierSettings } from 'settings';
 
 export const DEFAULT_FRONTMATTER_SETTING = {
 	name: '',

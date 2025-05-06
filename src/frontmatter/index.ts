@@ -1,14 +1,9 @@
-import { getAllTags, getFrontMatterInfo, MetadataCache, TFile } from 'obsidian';
-import { DEFAULT_FRONTMATTER_SETTING } from 'settings/DefaultSettings';
-import { FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
+import { getFrontMatterInfo, TFile, MetadataCache, getAllTags } from "obsidian";
+import type { FrontmatterTemplate } from "Providers/ProvidersSetup/shared/Types";
+import { DEFAULT_FRONTMATTER_SETTING } from "settings/DefaultSettings";
+import { generateId } from "utils";
+import type { LinkType, ProcessFrontMatterFn, InsertFrontMatterParams, FrontMatter } from "utils/interface";
 
-import { generateId } from 'utils';
-import {
-	FrontMatter,
-	InsertFrontMatterParams,
-	LinkType,
-	ProcessFrontMatterFn,
-} from 'utils/interface';
 
 export const TAG_FRONMATTER_NAME = 'tags';
 

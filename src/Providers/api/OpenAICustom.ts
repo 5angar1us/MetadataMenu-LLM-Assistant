@@ -3,7 +3,8 @@ import { generateObject } from 'ai';
 import { z } from 'zod';
 import { ApiError } from 'error/ApiError';
 import { BaseAPIProvider } from './BaseAPIProvider';
-import { ProviderConfig, StructuredOutput } from 'Providers/ProvidersSetup/shared/Types';
+import type { ProviderConfig, StructuredOutput } from 'Providers/ProvidersSetup/shared/Types';
+
 
 // Define the Zod schema for the expected output structure
 const structuredOutputSchema = z.object({

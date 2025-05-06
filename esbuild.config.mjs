@@ -3,6 +3,8 @@ import process from "process";
 import builtins from "builtin-modules";
 import copy from "esbuild-plugin-copy";
 import clean from "esbuild-plugin-clean";
+import esbuildSvelte from 'esbuild-svelte';
+import { sveltePreprocess } from 'svelte-preprocess';
 
 const banner =
 `/*
@@ -44,6 +46,10 @@ const context = await esbuild.context({
     minify: prod,
     outdir: "dist",
     plugins: [
+        esbuildSvelte({
+            compilerOptions: { css: 'injected' },
+            preprocess: sveltePreprocess(),
+        }),
         clean({
             patterns: ["./dist/*"],
         }),

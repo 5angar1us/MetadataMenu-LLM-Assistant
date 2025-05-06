@@ -1,10 +1,9 @@
-
-import { requestUrl, RequestUrlParam } from 'obsidian';
-import { getHeaders, getRequestParam } from '.';
-import { BaseAPIProvider } from './BaseAPIProvider';
-import { OPENAI_STRUCTURE_OUTPUT } from 'Providers/ProvidersSetup/OpenAIProvider';
-import { ApiError } from 'error/ApiError';
-import { ProviderConfig, StructuredOutput } from 'Providers/ProvidersSetup/shared/Types';
+import type { ProviderConfig, StructuredOutput } from "Providers/ProvidersSetup/shared/Types";
+import { BaseAPIProvider } from "./BaseAPIProvider";
+import { ApiError } from "error/ApiError";
+import { type RequestUrlParam, requestUrl } from "obsidian";
+import { OPENAI_STRUCTURE_OUTPUT } from "Providers/ProvidersSetup/OpenAIProvider";
+import { getHeaders, getRequestParam } from ".";
 
 export class OpenAI extends BaseAPIProvider {
 	async callAPI(

@@ -1,5 +1,6 @@
 import { App, Notice } from "obsidian";
-import { MetadataMenuApi } from 'metadatamenu';
+import { type IMetadataMenuApi } from "metadatamenu"
+
 
 const DATAVIEW = {
     id: "dataview",
@@ -32,21 +33,21 @@ export function checkPluginAvailability(app: App, pluginID: string, pluginName: 
     return true;
 }
 
-export function checkAvailabilityDataview() {
-    return checkPluginAvailability(this.app,DATAVIEW.id , DATAVIEW.name);
+export function checkAvailabilityDataview(app: App) {
+    return checkPluginAvailability(app, DATAVIEW.id, DATAVIEW.name);
 }
-export function checkAvailabilitymetadataMenu() {
-    return checkPluginAvailability(this.app, METADATA_MENU.id, METADATA_MENU.name);
+export function checkAvailabilityMetadataMenu(app: App) {
+    return checkPluginAvailability(app, METADATA_MENU.id, METADATA_MENU.name);
 }
 
-export function GetMetadataMenuApi(app: App): MetadataMenuApi {
+export function GetMetadataMenuApi(app: App): IMetadataMenuApi {
     // types : 
     // - https://github.com/eth-p/obsidian-undocumented/blob/master/src/typings/plugin-manager.d.ts#L13
     // - https://github.com/mdelobelle/metadatamenu/blob/master/src/MetadataMenuApi.ts
 
     //@ts-ignore
     const rawApi = app.plugins.getPlugin(METADATA_MENU.id).api;
-    const api = rawApi as MetadataMenuApi;
+    const api = rawApi as IMetadataMenuApi;
 
     return api;
 }

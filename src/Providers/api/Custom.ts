@@ -1,10 +1,9 @@
-
-import { ApiError } from 'error/ApiError';
-import { requestUrl, RequestUrlParam } from 'obsidian';
-import { BaseAPIProvider } from './BaseAPIProvider';
-import { getHeaders, getRequestParam } from '.';
-import { LMSTUDIO_STRUCTURE_OUTPUT } from 'Providers/ProvidersSetup/CustomAIProvider';
-import { ProviderConfig, StructuredOutput } from 'Providers/ProvidersSetup/shared/Types';
+import { ApiError } from "error/ApiError";
+import { type RequestUrlParam, requestUrl } from "obsidian";
+import { LMSTUDIO_STRUCTURE_OUTPUT } from "Providers/ProvidersSetup/CustomAIProvider";
+import type { ProviderConfig, StructuredOutput } from "Providers/ProvidersSetup/shared/Types";
+import { getHeaders, getRequestParam } from ".";
+import { BaseAPIProvider } from "./BaseAPIProvider";
 
 
 export class Custom extends BaseAPIProvider {

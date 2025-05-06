@@ -1,5 +1,5 @@
 import { AIProvider } from "Providers/ProvidersSetup";
-import { ProviderConfig } from "Providers/ProvidersSetup/shared/Types";
+import type { ProviderConfig } from "Providers/ProvidersSetup/shared/Types";
 
 // Define list of special fields that need custom handling
 const SPECIAL_FIELDS = ['providers', 'selectedModel'] as const;

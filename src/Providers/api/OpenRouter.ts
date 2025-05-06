@@ -1,9 +1,9 @@
 
 import { ApiError } from 'error/ApiError';
-import { requestUrl, RequestUrlParam } from 'obsidian';
-import { APIProvider, ProviderConfig, StructuredOutput } from 'Providers/ProvidersSetup/shared/Types';
 import { getHeaders, getRequestParam } from '.';
 import { OPENROUTER_STRUCTURE_OUTPUT } from 'Providers/ProvidersSetup/OpenRouterProvider';
+import { type RequestUrlParam, requestUrl } from 'obsidian';
+import type { APIProvider, ProviderConfig, StructuredOutput } from 'Providers/ProvidersSetup/shared/Types';
 
 
 export class OpenRouter implements APIProvider {

@@ -2,9 +2,9 @@ import { getFrontmatterSetting } from 'frontmatter';
 import { setIcon } from 'obsidian';
 
 import { BaseSettingsComponent } from './BaseSettingsComponent';
-import { FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
-import { LinkType } from 'utils/interface';
 import { WikiLinkSelector } from './WikiLinkSelector';
+import type { FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
+import type { LinkType } from 'utils/interface';
 
 export class FrontmatterComponent extends BaseSettingsComponent {
 	display(containerEl: HTMLElement, frontmatterId: number): void {

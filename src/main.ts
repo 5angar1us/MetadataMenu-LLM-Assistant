@@ -1,12 +1,12 @@
-import { App, Notice, Plugin, TFile } from 'obsidian';
-import { AutoClassifierSettings, AutoClassifierSettingTab, SelectFrontmatterModal } from './settings';
-import { FrontmatterTemplate, ProviderConfig } from 'Providers/ProvidersSetup/shared/Types';
-import { DEFAULT_SETTINGS } from 'settings/DefaultSettings';
-import { processAllFrontmatter, processFrontmatter } from 'handle';
-import { mergeDefaults } from 'utils/merge-settings';
-import { isTagsFrontmatterTemplate } from 'frontmatter';
-import { checkPluginAvailability, GetMetadataMenuApi } from 'PluginAvailability';
-import { getAPI, DataviewApi } from "obsidian-dataview";
+import { isTagsFrontmatterTemplate } from "frontmatter";
+import { processFrontmatter, processAllFrontmatter } from "handle";
+import { Plugin, Notice } from "obsidian";
+import { getAPI, type DataviewApi } from "obsidian-dataview";
+import { checkAvailabilityDataview, checkAvailabilityMetadataMenu, checkPluginAvailability, GetMetadataMenuApi } from "PluginAvailability";
+import { type AutoClassifierSettings, AutoClassifierSettingTab, SelectFrontmatterModal } from "settings";
+import { DEFAULT_SETTINGS } from "settings/DefaultSettings";
+import { mergeDefaults } from "utils/merge-settings";
+
 
 export default class AutoClassifierPlugin extends Plugin {
 	settings: AutoClassifierSettings;
@@ -15,13 +15,13 @@ export default class AutoClassifierPlugin extends Plugin {
 		await this.loadSettings();
 
 		this.app.workspace.onLayoutReady(() => {
-			const dataviewAvailable = checkPluginAvailability(this.app, "dataview", "Dataview");
-			const metadataMenuAvailable = checkPluginAvailability(this.app, "metadata-menu", "Metadata Menu");
+			const dataviewAvailable = checkAvailabilityDataview(this.app);
+			const metadataMenuAvailable = checkAvailabilityMetadataMenu(this.app);
 		});
 
 		this.setupCommand();
 
-		const dvapi = getAPI(this.app)!;
+		const dvapi = getAPI(this.app)! as DataviewApi;
 		const mmapi = GetMetadataMenuApi(this.app);
 
 		this.addSettingTab(new AutoClassifierSettingTab(this));

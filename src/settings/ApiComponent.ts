@@ -4,7 +4,7 @@ import AutoClassifierPlugin from 'main';
 import { getDefaultEndpoint } from 'utils';
 import { validateAPIKey } from 'Providers/api';
 import { AIProvider } from 'Providers/ProvidersSetup';
-import { ProviderConfig } from 'Providers/ProvidersSetup/shared/Types';
+import type { ProviderConfig } from 'Providers/ProvidersSetup/shared/Types';
 
 export class ApiComponent {
 	protected plugin: AutoClassifierPlugin;

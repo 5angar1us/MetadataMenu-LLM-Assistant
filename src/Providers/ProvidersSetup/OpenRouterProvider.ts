@@ -1,6 +1,6 @@
 import { DEFAULT_TEMPERATURE } from "Providers/Const";
 import { AIProvider } from ".";
-import { ProviderConfig } from "./shared/Types";
+import type { ProviderConfig } from "./shared/Types";
 
 export const OPENROUTER_PROVIDER: ProviderConfig = {
     name: AIProvider.OpenRouter,
