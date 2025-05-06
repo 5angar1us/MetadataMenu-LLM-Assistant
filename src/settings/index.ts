@@ -8,6 +8,7 @@ import { FrontmatterComponent } from './FrontmatterComponent';
 import { TagComponent } from './TagComponent';
 import type { ProviderConfig, FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
 import type { LinkType } from 'utils/interface';
+import FrontmatterManager from './Swelte/FrontmatterComponent/FrontmatterManager.svelte'
 
 
 export interface AutoClassifierSettings {
@@ -17,7 +18,7 @@ export interface AutoClassifierSettings {
 	frontmatter: FrontmatterTemplate[];
 }
 
-export class AutoClassifierSettingTab extends PluginSettingTab {
+export class AutoClassifierSettingTab2 extends PluginSettingTab {
 	plugin: AutoClassifierPlugin;
 	apiSetting: ApiComponent;
 	tagSetting: TagComponent;
@@ -102,6 +103,65 @@ export class AutoClassifierSettingTab extends PluginSettingTab {
 		setTimeout(() => newFrontmatterContainer.removeClass('newly-added'), 2000);
 	}
 }
+
+
+export class AutoClassifierSettingTab extends PluginSettingTab {
+	plugin: AutoClassifierPlugin;
+	
+	frontmatterManagerComponent: FrontmatterManager | null = null;
+    
+	frontmatterContainer: HTMLElement | null = null;
+	constructor(plugin: AutoClassifierPlugin) {
+		super(plugin.app, plugin);
+		this.plugin = plugin;
+
+	}
+
+	display(): void {
+		let { containerEl } = this;
+		containerEl.empty();
+	
+		// Заголовок настроек
+		containerEl.createEl('h2', { text: 'Auto Classifier Settings' });
+	
+		// Другие настройки плагина...
+		
+		// Контейнер для фронтматтеров
+		containerEl.createEl('h3', { text: 'Frontmatter Templates' });
+		this.frontmatterContainer = containerEl.createDiv({ cls: 'frontmatter-settings-container' });
+		
+		// Монтируем Svelte компонент
+		this.mountFrontmatterManager();
+	  }
+
+	  mountFrontmatterManager(): void {
+		if (this.frontmatterContainer) {
+		  // Уничтожаем предыдущий экземпляр, если он существует
+		  if (this.frontmatterManagerComponent) {
+			this.frontmatterManagerComponent.$destroy();
+		  }
+	
+		  // Создаем новый экземпляр
+		  this.frontmatterManagerComponent = new FrontmatterManager({
+			target: this.frontmatterContainer,
+			props: {
+			  plugin: this.plugin
+			}
+		  });
+		}
+	  }
+	
+	  hide(): void {
+		// Очищаем ресурсы при закрытии настроек
+		if (this.frontmatterManagerComponent) {
+		  this.frontmatterManagerComponent.$destroy();
+		  this.frontmatterManagerComponent = null;
+		}
+	  }
+}
+
+export * from './SelectFrontmatterModal';
+export * from './WikiLinkSuggestModal';
 
 export * from './SelectFrontmatterModal';
 export * from './WikiLinkSuggestModal';
