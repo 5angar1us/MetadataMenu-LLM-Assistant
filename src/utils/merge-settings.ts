@@ -53,10 +53,10 @@ export const mergeDefaults = <T extends Record<string, any>>(
 
 		// 1. Special handling for providers
 		if (key === 'providers' && Array.isArray(defaultValue) && Array.isArray(targetValue)) {
-			result[key] = defaultValue.map((defaultProvider) => {
+			result[key] = defaultValue.map((defaultProvider : ProviderConfig) => {
 				const userProvider = targetValue.find(
 					(p: ProviderConfig) => p.name === defaultProvider.name
-				);
+				) as ProviderConfig;
 				return mergeProvider(defaultProvider, userProvider);
 			});
 		}
