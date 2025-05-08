@@ -76,3 +76,16 @@
 </script>
 
 <div bind:this={settingEl}></div>
+
+<style>
+	.api-test-success {
+		color: var(--text-success);
+	}
+
+	.api-test-error {
+		color: var(--text-error);
+	}
+	.api-key-setting .setting-item-control {
+		flex-wrap: wrap;
+	}
+</style>

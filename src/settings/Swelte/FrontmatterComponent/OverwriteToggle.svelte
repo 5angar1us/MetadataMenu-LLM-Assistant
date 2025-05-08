@@ -40,13 +40,12 @@
 		gap: 4px;
 	}
 
-
-
 	.toggle {
 		position: relative;
 		display: inline-block;
-		width: 36px;
-		height: 18px;
+		width: 44px;
+		height: 24px;
+		cursor: pointer;
 	}
 
 	.toggle input {
@@ -57,26 +56,26 @@
 
 	.toggle-slider {
 		position: absolute;
-		cursor: pointer;
 		top: 0;
 		left: 0;
 		right: 0;
 		bottom: 0;
 		background-color: var(--background-modifier-border);
-		border-radius: 18px;
+		border-radius: 34px;
 		transition: 0.3s;
 	}
 
 	.toggle-slider:before {
 		position: absolute;
 		content: '';
-		height: 14px;
-		width: 14px;
-		left: 2px;
-		bottom: 2px;
-		background-color: var(--background-primary);
+		height: 18px;
+		width: 18px;
+		left: 3px;
+		bottom: 3px;
+		background-color: white;
 		border-radius: 50%;
 		transition: 0.3s;
+		box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 	}
 
 	input:checked + .toggle-slider {
@@ -84,6 +83,13 @@
 	}
 
 	input:checked + .toggle-slider:before {
-		transform: translateX(18px);
+		transform: translateX(20px);
+	}
+
+	.toggle-wrapper {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: var(--control-height);
 	}
 </style>

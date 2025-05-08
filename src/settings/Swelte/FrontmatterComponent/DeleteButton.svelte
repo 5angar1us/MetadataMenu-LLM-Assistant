@@ -3,7 +3,7 @@
 	import { onMount } from 'svelte';
 	import { setIcon } from 'obsidian';
 	import type { DispatchEventsDeleteButton } from './events';
-	import { confirm } from 'obsidian-dev-utils/obsidian/Modals/Confirm'
+	import { confirm } from 'obsidian-dev-utils/obsidian/Modals/Confirm';
 	import type AutoClassifierPlugin from 'main';
 	import { AutoClassifierPluginKey } from '../context-keys';
 
@@ -11,7 +11,7 @@
 	let buttonEl: HTMLElement;
 	const plugin = getContext<AutoClassifierPlugin>(AutoClassifierPluginKey);
 
-	onMount(() => { 
+	onMount(() => {
 		if (buttonEl) {
 			setIcon(buttonEl, 'trash-2');
 		}
@@ -20,11 +20,11 @@
 	async function handleClick(e: MouseEvent) {
 		e.stopPropagation();
 		e.preventDefault();
-		
+
 		const isDelete = await confirm({
 			app: plugin.app,
 			message: 'Sample confirm message',
-			title: 'Sample confirm title'
+			title: 'Sample confirm title',
 		});
 		if (isDelete) {
 			dispatch('delete');
@@ -52,4 +52,5 @@
 		color: var(--text-error);
 		background-color: rgba(var(--text-error-rgb), 0.1);
 	}
+
 </style>

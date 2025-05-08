@@ -66,4 +66,9 @@
 		color: var(--text-normal);
 		font-size: 0.9em;
 	}
+	.frontmatter-name-input:focus {
+		border-color: var(--interactive-accent);
+		box-shadow: 0 0 0 2px rgba(var(--interactive-accent-rgb), 0.2);
+		outline: none;
+	}
 </style>

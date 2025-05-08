@@ -29,7 +29,6 @@
 <div class="frontmatter-container" data-frontmatter-id={frontmatterId}>
 	<div class="frontmatter-card">
 		<div class="delete-button-container">
-			
 			<DeleteButton on:delete={handleDelete} />
 		</div>
 
@@ -61,10 +60,6 @@
 </div>
 
 <style>
-	.frontmatter-header {
-		margin-bottom: 12px;
-	}
-
 	.delete-button-container {
 		position: absolute;
 		right: 8px;
@@ -89,6 +84,10 @@
 		position: relative;
 	}
 
+	.frontmatter-card:hover {
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+		transform: translateY(-1px);
+	}
 	.frontmatter-settings-container {
 		margin-top: 16px;
 	}
