@@ -14,6 +14,26 @@
 
 	export let plugin: AutoClassifierPlugin;
 
+	let outputText = '';
+	async function updateOutputText(newText: string) {
+		const mmapi = GetMetadataMenuApi(plugin.app);
+		const t = await mmapi.fileFields(newText);
+		const t2 = Object.values(t);
+		const t3 = t2.map((field) => ({
+			name: field.name,
+			type: field.type,
+			options: field.options,
+		}));
+		const t4 = JSON.stringify(t3);
+
+		outputText = t4;
+	}
+
+	let selectedFile = '';
+	function handleFileChange(newValue: string) {
+		selectedFile = newValue;
+		updateOutputText(selectedFile);
+	}
 
 	let _frontmatters: FrontmatterTemplate[] = [];
 
@@ -72,6 +92,14 @@
 </script>
 
 <div class="frontmatter-manager">
+	<FileInput
+		value={selectedFile}
+		placeholder="Search for a file..."
+		label="Target File"
+		description="Select the file to apply frontmatter to"
+		app={plugin.app}
+		onChange={handleFileChange}
+	/>
 	{#if outputText}
 		<div class="output-textarea">
 			<label>
