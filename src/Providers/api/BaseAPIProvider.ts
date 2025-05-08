@@ -1,4 +1,5 @@
-import type { APIProvider, ProviderConfig, StructuredOutput } from "Providers/ProvidersSetup/shared/Types";
+import { ApiError } from "error/ApiError";
+import { StructuredOutputSchema, type APIProvider, type ProviderConfig, type StructuredOutput } from "Providers/ProvidersSetup/shared/Types";
 import { tryCatch } from "utils/ErrorHandling";
 
 
@@ -28,5 +29,33 @@ export abstract class BaseAPIProvider implements APIProvider {
 		console.log('OpenRouter verifyConnection result:', result.data);
 		return true;
 	}
+
+	protected processApiResponse(responseData: any): StructuredOutput {
+        try {
+
+            if (!responseData.choices || responseData.choices.length === 0) {
+                throw new ApiError('No choices in API response');
+            }
+
+            const message = responseData.choices[0].message;
+            if (!message || !message.content) {
+                throw new ApiError('No message content in API response');
+            }
+
+            if (typeof message.content === 'object' && message.content !== null) {
+                return StructuredOutputSchema.parse(message.content);
+            }
+
+            if (typeof message.content === 'string') {
+                const content = message.content.trim();
+                return StructuredOutputSchema.parse(JSON.parse(content));
+            }
+
+            throw new ApiError('Unsupported response format');
+        } catch (error) {
+            console.error('Error processing API response:', error);
+            throw error instanceof ApiError ? error : new ApiError('Failed to process API response');
+        }
+    }
 }
 

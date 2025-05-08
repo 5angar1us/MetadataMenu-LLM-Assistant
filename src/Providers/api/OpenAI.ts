@@ -1,4 +1,4 @@
-import type { ProviderConfig, StructuredOutput } from "Providers/ProvidersSetup/shared/Types";
+import { StructuredOutputSchema, type ProviderConfig, type StructuredOutput } from "Providers/ProvidersSetup/shared/Types";
 import { BaseAPIProvider } from "./BaseAPIProvider";
 import { ApiError } from "error/ApiError";
 import { type RequestUrlParam, requestUrl } from "obsidian";
@@ -52,29 +52,5 @@ export class OpenAI extends BaseAPIProvider {
 			console.error('API Request Error:', error);
 			throw error;
 		}
-	}
-
-	private processApiResponse(responseData: any): StructuredOutput {
-		// Handle different response formats from various models
-		const messageContent = responseData.choices[0].message.content;
-
-		// Some newer models might return parsed JSON directly
-		if (typeof messageContent === 'object' && messageContent !== null) {
-			return messageContent as StructuredOutput;
-		}
-
-		// Otherwise parse the content as JSON
-		const content = messageContent.trim();
-		return JSON.parse(content) as StructuredOutput;
-	}
-
-	async verifyConnection(provider: ProviderConfig): Promise<boolean> {
-		await this.callAPI(
-			'You are a test system. You must respond with valid JSON.',
-			'Return a JSON object containing {"output": [], "reliability": 0}',
-			provider,
-			provider.models[0]?.name
-		);
-		return true;
 	}
 }

@@ -4,9 +4,10 @@ import { getHeaders, getRequestParam } from '.';
 import { OPENROUTER_STRUCTURE_OUTPUT } from 'Providers/ProvidersSetup/OpenRouterProvider';
 import { type RequestUrlParam, requestUrl } from 'obsidian';
 import type { APIProvider, ProviderConfig, StructuredOutput } from 'Providers/ProvidersSetup/shared/Types';
+import { BaseAPIProvider } from './BaseAPIProvider';
 
 
-export class OpenRouter implements APIProvider {
+export class OpenRouter extends BaseAPIProvider {
 	async callAPI(
 		system_role: string,
 		user_prompt: string,
@@ -58,46 +59,5 @@ export class OpenRouter implements APIProvider {
 			console.error('API Request Error:', error);
 			throw error;
 		}
-	}
-
-	private processApiResponse(responseData: any): StructuredOutput {
-		try {
-			// Handle OpenRouter's response format
-			if (responseData.choices && responseData.choices.length > 0) {
-				const message = responseData.choices[0].message;
-
-				// If content is already a parsed object
-				if (message.content && typeof message.content === 'object') {
-					return message.content as StructuredOutput;
-				}
-
-				// If content is a string that needs parsing
-				if (message.content && typeof message.content === 'string') {
-					try {
-						const content = message.content.trim();
-						return JSON.parse(content) as StructuredOutput;
-					} catch (parseError) {
-						console.error('Error parsing JSON response:', parseError);
-						throw new ApiError('Failed to parse response as JSON');
-					}
-				}
-			}
-
-			throw new ApiError('Invalid response format from OpenRouter API');
-		} catch (error) {
-			console.error('Error processing API response:', error);
-			throw error;
-		}
-	}
-
-	async verifyConnection(provider: ProviderConfig): Promise<boolean> {
-		const result = await this.callAPI(
-			'You are a test system. You must respond with valid JSON.',
-			`Return a JSON object containing {"output": [], "reliability": 0}`,
-			provider,
-			provider.models[0]?.name
-		);
-		console.log('OpenRouter verifyConnection result:', result);
-		return true;
 	}
 }

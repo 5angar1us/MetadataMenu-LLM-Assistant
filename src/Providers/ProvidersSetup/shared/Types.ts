@@ -1,4 +1,5 @@
 import { type LinkType } from "utils/interface";
+import { z } from 'zod';
 
 export interface ProviderConfig {
     name: string;
@@ -25,10 +26,17 @@ export interface FrontmatterTemplate {
 	linkType: LinkType;
 }
 
-export interface StructuredOutput {
-	output: string[];
-	reliability: number;
-}
+
+// Тип для использования в TypeScript
+export type StructuredOutput = z.infer<typeof StructuredOutputSchema>;
+
+
+export const StructuredOutputSchema = z.object({
+	output: z.array(z.string()), 
+	reliability: z.number()      
+	  .min(0)                   
+	  .max(1),                  
+  });
 
 
 export interface APIProvider {

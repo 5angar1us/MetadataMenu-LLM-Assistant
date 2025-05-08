@@ -1,7 +1,7 @@
 import { ApiError } from "error/ApiError";
 import { type RequestUrlParam, requestUrl } from "obsidian";
 import { LMSTUDIO_STRUCTURE_OUTPUT } from "Providers/ProvidersSetup/CustomAIProvider";
-import type { ProviderConfig, StructuredOutput } from "Providers/ProvidersSetup/shared/Types";
+import { StructuredOutputSchema, type ProviderConfig, type StructuredOutput } from "Providers/ProvidersSetup/shared/Types";
 import { getHeaders, getRequestParam } from ".";
 import { BaseAPIProvider } from "./BaseAPIProvider";
 
@@ -54,19 +54,5 @@ export class Custom extends BaseAPIProvider {
 			console.error('API Request Error:', error);
 			throw error;
 		}
-	}
-
-	private processApiResponse(responseData: any): StructuredOutput {
-		// Handle different response formats from various models
-		const messageContent = responseData.choices[0].message.content;
-
-		// Some models might return parsed JSON directly
-		if (typeof messageContent === 'object' && messageContent !== null) {
-			return messageContent as StructuredOutput;
-		}
-
-		// Otherwise parse the content as JSON
-		const content = messageContent.trim();
-		return JSON.parse(content) as StructuredOutput;
 	}
 }
