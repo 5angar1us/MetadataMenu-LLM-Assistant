@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { onMount, setContext } from 'svelte';
-	import FrontmatterCard from './FrontmatterCard.svelte';
+	import FrontmatterCard, { type DeleteFrontmatter, type SettingsChangeEvent } from './FrontmatterCard.svelte';
 	import { WikiLinkSelector } from '../../WikiLinkSelector';
 	import FileInput from './FileInput.svelte';
 	import type { Plugin } from 'obsidian';
@@ -9,8 +9,8 @@
 	import { DEFAULT_FRONTMATTER_SETTING } from 'settings/DefaultSettings';
 	import { addFrontmatterSetting } from 'frontmatter';
 	import { GetMetadataMenuApi } from 'PluginAvailability';
-	import type { DeleteFrontmatterEvent, SettingsChangeEvent } from './events';
 	import { AutoClassifierPluginKey } from '../context-keys';
+	import type { DeleteFrontmatterEvent } from './DeleteButton.svelte';
 
 	export let plugin: AutoClassifierPlugin;
 
@@ -52,7 +52,7 @@
 		updatedSetting(_frontmatters);
 	}
 
-	async function handleDelete(event: DeleteFrontmatterEvent) {
+	async function handleDelete(event: DeleteFrontmatter) {
 		const { frontmatterId } = event.detail;
 
 		const frontmatters = _frontmatters.filter((f) => f.id !== frontmatterId);

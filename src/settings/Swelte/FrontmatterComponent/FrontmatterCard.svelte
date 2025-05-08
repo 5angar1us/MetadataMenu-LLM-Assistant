@@ -10,14 +10,13 @@
 	};
 
 	export type SettingsChangeEvent = CustomEvent<DispatchEventsFrontmatterCard['settingsChange']>;
+	export type DeleteFrontmatter = CustomEvent<DispatchEventsFrontmatterCard['settingsChange']>;
 </script>
 
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import FrontmatterHeader, {
-		type ChangeFrontmatterTemplateName,
-	} from './FrontmatterHeader.svelte';
-	import OverwriteToggle, { type ChangeOverwriteFrontmatter } from './OverwriteToggle.svelte';
+	import FrontmatterHeader from './FrontmatterHeader.svelte';
+	import OverwriteToggle from './OverwriteToggle.svelte';
 	import CountInput from './CountInput.svelte';
 	import DeleteButton from './DeleteButton.svelte';
 	import OptionsSection from './OptionsSection.svelte';

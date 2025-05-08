@@ -9,6 +9,7 @@ import type { LinkType } from 'utils/interface';
 import FrontmatterManager from './Swelte/FrontmatterComponent/FrontmatterManager.svelte'
 import ApiSettings from './Swelte/ApiComponent.ts/ApiSettings.svelte';
 import type { ComponentType, SvelteComponent } from 'svelte';
+import TabsManager from './Swelte/TabsManager.svelte';
 
 
 export interface AutoClassifierSettings {
@@ -37,15 +38,10 @@ export class AutoClassifierSettingTab extends PluginSettingTab {
 		
 		// Инициализация компонентов
 		this.components = {
-			apiSettings: {
+			tabsManager: {
 				SvelteComponent: null,
 				container: null,
-				componentClass: ApiSettings,
-			},
-			frontmatter: {
-				SvelteComponent: null,
-				container: null,
-				componentClass: FrontmatterManager,
+				componentClass: TabsManager,
 			},
 			
 		};
