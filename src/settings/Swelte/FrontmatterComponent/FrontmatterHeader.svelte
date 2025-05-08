@@ -1,26 +1,27 @@
+<script lang="ts" context="module">
+	type DispatchChangeName = {
+		change: {
+			newName: string;
+		};
+	};
+	export type ChangeFrontmatterTemplateName = CustomEvent<DispatchChangeName['change']>;
+</script>
+
 <script lang="ts">
+	import { debounce } from 'obsidian';
 	import { createEventDispatcher } from 'svelte';
 
 	export let name: string = '';
 
-	const dispatch = createEventDispatcher<{
-		change: string;
-	}>();
+	const dispatch = createEventDispatcher<DispatchChangeName>();
 
 	function handleInput(e: Event) {
 		const target = e.target as HTMLInputElement;
 		name = target.value;
+		dispatch('change', { newName: name });
 	}
 
-	function handleBlur() {
-		dispatch('change', name);
-	}
-
-	function handleKeydown(e: KeyboardEvent) {
-		if (e.key === 'Enter') {
-			(e.target as HTMLInputElement).blur();
-		}
-	}
+	const debouncedHandleInput = debounce(handleInput, 300);
 </script>
 
 <div class="frontmatter-header-container">
@@ -31,9 +32,7 @@
 			class="frontmatter-name-input"
 			placeholder="tags"
 			value={name}
-			on:input={handleInput}
-			on:blur={handleBlur}
-			on:keydown={handleKeydown}
+			on:input={debouncedHandleInput}
 		/>
 	</div>
 </div>

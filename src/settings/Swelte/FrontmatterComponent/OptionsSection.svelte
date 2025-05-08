@@ -1,28 +1,42 @@
-<script>
-	import { createEventDispatcher } from 'svelte';
-	import BrowseButton from './BrowseButton.svelte';
+<script lang="ts" context="module">
+    type DispatchOptionsSelection = {
+        change: {
+            newOption: string[];
+        },
+        browse: void; 
+    };
+    export type ChangeOptionsSelection = CustomEvent<DispatchOptionsSelection['change']>;
+</script>
 
-	export let options = [];
-	export let linkType = 'Normal';
 
-	const dispatch = createEventDispatcher();
+<script lang="ts"> 
+    import { createEventDispatcher } from 'svelte';
+    import BrowseButton from './BrowseButton.svelte';
 
-	function handleChange(e) {
-		const inputOptions = e.target.value
-			.split(',')
-			.map((option) => option.trim())
-			.filter(Boolean);
+    
+    export let linkType = 'Normal';
+    export let options: string[] = [];  
 
-		dispatch('change', inputOptions);
-	}
+    const dispatch = createEventDispatcher<DispatchOptionsSelection>();  // Было ChangeOptionsSelection, должно быть DispatchOptionsSelection
 
-	function handleBrowse() {
-		dispatch('browse');
-	}
+    function handleChange(e: Event) {
+        const target = e.target as HTMLInputElement;
+        const inputOptions = target
+            .value
+            .split(',')
+            .map((option) => option.trim())
+            .filter(Boolean);
 
-	function formatOptionsForDisplay() {
-		return options.join(', ');
-	}
+        dispatch('change', { newOption: inputOptions });
+    }
+
+    function handleBrowse() {
+        dispatch('browse');
+    }
+
+    function formatOptionsForDisplay() {
+        return options.join(', ');
+    }
 </script>
 
 <div class="options-section">

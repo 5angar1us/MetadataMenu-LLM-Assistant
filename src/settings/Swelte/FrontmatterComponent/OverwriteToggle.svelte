@@ -1,12 +1,21 @@
-<script>
+<script lang="ts" context="module">
+	export type DispatchToogle = {
+		change: {
+			isOverwrite: boolean;
+		};
+	};
+	export type ChangeOverwriteFrontmatter = CustomEvent<DispatchToogle['change']>;
+</script>
+
+<script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { onMount } from 'svelte';
 	import { setIcon } from 'obsidian';
 
-	export let overwrite = false;
+	export let isOverwrite = false;
 
-	const dispatch = createEventDispatcher();
-	let labelEl;
+	const dispatch = createEventDispatcher<DispatchToogle>();
+	let labelEl : HTMLElement | null = null;
 
 	onMount(() => {
 		if (labelEl) {
@@ -14,9 +23,10 @@
 		}
 	});
 
-	function handleChange(e) {
-		overwrite = e.target.checked;
-		dispatch('change', overwrite);
+	function handleChange(e: Event) {
+		const target = e.target as HTMLInputElement;
+		isOverwrite = target.checked;
+		dispatch('change', { isOverwrite: isOverwrite });
 	}
 </script>
 
@@ -27,7 +37,7 @@
 	</div>
 	<div class="control-input toggle-wrapper">
 		<label class="toggle">
-			<input type="checkbox" checked={overwrite} on:change={handleChange} />
+			<input type="checkbox" checked={isOverwrite} on:change={handleChange} />
 			<span class="toggle-slider"></span>
 		</label>
 	</div>

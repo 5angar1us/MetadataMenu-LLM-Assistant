@@ -1,24 +1,36 @@
+<script lang="ts" context="module">
+	type DispatchEventsFrontmatterCard = {
+		settingsChange: {
+			frontmatterId: number;
+			updatedFrontmatter: FrontmatterTemplate;
+		};
+		delete: {
+			frontmatterId: number;
+		};
+	};
+
+	export type SettingsChangeEvent = CustomEvent<DispatchEventsFrontmatterCard['settingsChange']>;
+</script>
+
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
-	import FrontmatterHeader from './FrontmatterHeader.svelte';
-	import LinkTypeSelector from './LinkTypeSelector.svelte';
-	import OverwriteToggle from './OverwriteToggle.svelte';
+	import FrontmatterHeader, {
+		type ChangeFrontmatterTemplateName,
+	} from './FrontmatterHeader.svelte';
+	import OverwriteToggle, { type ChangeOverwriteFrontmatter } from './OverwriteToggle.svelte';
 	import CountInput from './CountInput.svelte';
 	import DeleteButton from './DeleteButton.svelte';
 	import OptionsSection from './OptionsSection.svelte';
 	import type { FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
-	import type { DispatchEventsFrontmatterCard } from './events';
 
 	export let frontmatterSetting: FrontmatterTemplate;
 	export let frontmatterId: number;
 
 	const dispatch = createEventDispatcher<DispatchEventsFrontmatterCard>();
 
-	function handleSettingsChange(updatedFrontmatter: FrontmatterTemplate) {
-		dispatch('settingsChange', {
-			frontmatterId,
-			updatedFrontmatter,
-		});
+	function handleSettingsChange(update: Partial<FrontmatterTemplate>) {
+		const updatedFrontmatter = { ...frontmatterSetting, ...update };
+		dispatch('settingsChange', { frontmatterId, updatedFrontmatter });
 	}
 
 	function handleDelete() {
@@ -34,26 +46,26 @@
 
 		<FrontmatterHeader
 			name={frontmatterSetting.name}
-			on:change={(e) => handleSettingsChange(frontmatterSetting)}
+			on:change={(e) => handleSettingsChange({ name: e.detail.newName })}
 		></FrontmatterHeader>
 
 		<div class="frontmatter-settings-container">
 			<div class="frontmatter-controls-row">
 				<OverwriteToggle
-					overwrite={frontmatterSetting.overwrite}
-					on:change={(e) => handleSettingsChange(frontmatterSetting)}
+					isOverwrite={frontmatterSetting.overwrite}
+					on:change={(e) => handleSettingsChange({ overwrite: e.detail.isOverwrite })}
 				/>
 
 				<CountInput
 					count={frontmatterSetting.count}
-					on:change={(e) => handleSettingsChange(frontmatterSetting)}
+					on:change={(e) => handleSettingsChange({ count: e.detail.newCount })}
 				/>
 			</div>
 
 			<OptionsSection
 				options={frontmatterSetting.refs}
 				linkType={frontmatterSetting.linkType}
-				on:change={(e) => handleSettingsChange({ ...frontmatterSetting, refs: e.detail })}
+				on:change={(e) => handleSettingsChange({ refs: e.detail.newOption })}
 			/>
 		</div>
 	</div>

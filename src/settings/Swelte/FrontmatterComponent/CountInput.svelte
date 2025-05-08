@@ -1,3 +1,13 @@
+<script lang="ts" context="module">
+	export type DispatchCountInput = {
+		change: {
+			newCount: number;
+		};
+	};
+	export type ChangeCount = CustomEvent<DispatchCountInput['change']>;
+</script>
+
+
 <script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 	import { onMount } from 'svelte';
@@ -5,9 +15,7 @@
 
 	export let count: number = 5;
 
-	const dispatch = createEventDispatcher<{
-		change: number;
-	}>();
+	const dispatch = createEventDispatcher<DispatchCountInput>();
 	let labelEl: HTMLElement | null = null;
 
 	onMount(() => {
@@ -21,7 +29,7 @@
 		const value = parseInt(target.value, 10);
 		if (!isNaN(value) && value > 0) {
 			count = value;
-			dispatch('change', count);
+			dispatch('change', {newCount: count});
 		}
 	}
 </script>

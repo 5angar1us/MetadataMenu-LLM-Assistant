@@ -45,7 +45,7 @@
 		const { frontmatterId, updatedFrontmatter } = event.detail;
 
 		const index = _frontmatters.findIndex((f) => f.id === frontmatterId);
-		if (index !== -1) return;
+		if (index === -1) return;
 		
 		_frontmatters[index] = updatedFrontmatter;
 

@@ -1,8 +1,16 @@
+<script lang="ts" context="module">
+	export type DispatchEventsDeleteButton = {
+    delete: void;
+};
+
+export type DeleteFrontmatterEvent = CustomEvent<DispatchEventsDeleteButton['delete']>;
+
+</script>
+
 <script lang="ts">
 	import { createEventDispatcher, getContext } from 'svelte';
 	import { onMount } from 'svelte';
 	import { setIcon } from 'obsidian';
-	import type { DispatchEventsDeleteButton } from './events';
 	import { confirm } from 'obsidian-dev-utils/obsidian/Modals/Confirm';
 	import type AutoClassifierPlugin from 'main';
 	import { AutoClassifierPluginKey } from '../context-keys';
@@ -52,5 +60,4 @@
 		color: var(--text-error);
 		background-color: rgba(var(--text-error-rgb), 0.1);
 	}
-
 </style>
