@@ -1,68 +1,55 @@
-<script>
-    import { createEventDispatcher } from 'svelte';
-    import { onMount } from 'svelte';
-    import { setIcon } from 'obsidian';
-    
-    const dispatch = createEventDispatcher();
-    let labelEl;
-    let buttonEl;
-    
-    onMount(() => {
-      if (labelEl) {
-        setIcon(labelEl, 'trash-2');
-      }
-      if (buttonEl) {
-        setIcon(buttonEl, 'trash-2');
-      }
-    });
-    
-    function handleClick(e) {
-      e.stopPropagation();
-      e.preventDefault();
-      
-      if (confirm("Are you sure you want to delete this frontmatter?")) {
-        dispatch('delete');
-      }
-    }
-  </script>
-  
-  <div class="control-item delete-control">
-    <div class="control-label" bind:this={labelEl}>
-      <span>Delete</span>
-    </div>
-    
-    <div class="control-input delete-btn-wrapper">
-      <div class="delete-frontmatter-btn" bind:this={buttonEl} on:click={handleClick}></div>
-    </div>
-  </div>
-  
-  <style>
-    .control-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-    
-    .control-label {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 0.9em;
-      color: var(--text-muted);
-    }
-    
-    .delete-frontmatter-btn {
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-error);
-      width: 28px;
-      height: 28px;
-      border-radius: 4px;
-    }
-    
-    .delete-frontmatter-btn:hover {
-      background-color: var(--background-modifier-hover);
-    }
-  </style>
+<script lang="ts">
+	import { createEventDispatcher, getContext } from 'svelte';
+	import { onMount } from 'svelte';
+	import { setIcon } from 'obsidian';
+	import type { DispatchEventsDeleteButton } from './events';
+	import { confirm } from 'obsidian-dev-utils/obsidian/Modals/Confirm'
+	import type AutoClassifierPlugin from 'main';
+	import { AutoClassifierPluginKey } from '../context-keys';
+
+	const dispatch = createEventDispatcher<DispatchEventsDeleteButton>();
+	let buttonEl: HTMLElement;
+	const plugin = getContext<AutoClassifierPlugin>(AutoClassifierPluginKey);
+
+	onMount(() => { 
+		if (buttonEl) {
+			setIcon(buttonEl, 'trash-2');
+		}
+	});
+
+	async function handleClick(e: MouseEvent) {
+		e.stopPropagation();
+		e.preventDefault();
+		
+		const isDelete = await confirm({
+			app: plugin.app,
+			message: 'Sample confirm message',
+			title: 'Sample confirm title'
+		});
+		if (isDelete) {
+			dispatch('delete');
+		}
+	}
+</script>
+
+<button type="button" class="delete-frontmatter-btn" bind:this={buttonEl} on:click={handleClick}
+></button>
+
+<style>
+	.delete-frontmatter-btn {
+		cursor: pointer;
+		background: none;
+		border: none;
+		color: var(--text-muted);
+		padding: 4px;
+		border-radius: 4px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.delete-frontmatter-btn:hover {
+		color: var(--text-error);
+		background-color: rgba(var(--text-error-rgb), 0.1);
+	}
+</style>

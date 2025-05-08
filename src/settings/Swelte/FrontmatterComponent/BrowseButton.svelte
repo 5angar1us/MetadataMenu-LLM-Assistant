@@ -1,4 +1,4 @@
-<script>
+<script lags="ts">
     import { createEventDispatcher } from 'svelte';
     import { onMount } from 'svelte';
     import { setIcon } from 'obsidian';
@@ -17,10 +17,10 @@
     }
   </script>
   
-  <div class="browse-button" bind:this={buttonEl} on:click={handleClick}>
+  <button class="browse-button" bind:this={buttonEl} on:click={handleClick}>
     <span class="browse-icon"></span>
     <span>Browse Files</span>
-  </div>
+  </button>
   
   <style>
     .browse-button {

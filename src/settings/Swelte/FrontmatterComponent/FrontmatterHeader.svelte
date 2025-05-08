@@ -1,32 +1,35 @@
-<script>
+<script lang="ts">
 	import { createEventDispatcher } from 'svelte';
 
-	export let name = '';
+	export let name: string = '';
 
-	const dispatch = createEventDispatcher();
+	const dispatch = createEventDispatcher<{
+		change: string;
+	}>();
 
-	function handleInput(e) {
-		name = e.target.value;
+	function handleInput(e: Event) {
+		const target = e.target as HTMLInputElement;
+		name = target.value;
 	}
 
 	function handleBlur() {
 		dispatch('change', name);
 	}
 
-	function handleKeydown(e) {
+	function handleKeydown(e: KeyboardEvent) {
 		if (e.key === 'Enter') {
-			e.target.blur();
+			(e.target as HTMLInputElement).blur();
 		}
 	}
 </script>
 
-<div class="frontmatter-header">
-	<div class="frontmatter-name-container">
-		<label class="frontmatter-label">Frontmatter Key</label>
+<div class="frontmatter-header-container">
+	<label class="frontmatter-label">Frontmatter Key</label>
+	<div class="input-container">
 		<input
 			type="text"
 			class="frontmatter-name-input"
-			placeholder="Enter frontmatter name"
+			placeholder="tags"
 			value={name}
 			on:input={handleInput}
 			on:blur={handleBlur}
@@ -36,26 +39,31 @@
 </div>
 
 <style>
-	.frontmatter-header {
-		margin-bottom: 12px;
-	}
-
-	.frontmatter-name-container {
-		display: flex;
-		flex-direction: column;
-		gap: 4px;
+	.frontmatter-header-container {
+		width: 100%;
 	}
 
 	.frontmatter-label {
 		font-size: 0.9em;
 		font-weight: 600;
 		color: var(--text-muted);
+		margin-bottom: 8px;
+		display: block;
+	}
+
+	.input-container {
+		position: relative;
+		display: flex;
+		width: 100%;
 	}
 
 	.frontmatter-name-input {
-		padding: 6px 8px;
+		width: 100%;
+		padding: 10px 12px;
 		border-radius: 4px;
-		border: 1px solid var(--background-modifier-border);
+		border: none;
 		background-color: var(--background-primary);
+		color: var(--text-normal);
+		font-size: 0.9em;
 	}
 </style>
