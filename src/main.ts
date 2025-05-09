@@ -2,6 +2,7 @@ import { isTagsFrontmatterTemplate } from "frontmatter";
 import { processFrontmatter, processAllFrontmatter } from "handle";
 import { Plugin, Notice } from "obsidian";
 import { getAPI, type DataviewApi } from "obsidian-dataview";
+import { initPluginContext } from "obsidian-dev-utils/obsidian/Plugin/PluginContext";
 import { checkAvailabilityDataview, checkAvailabilityMetadataMenu, checkPluginAvailability, GetMetadataMenuApi } from "PluginAvailability";
 import { type AutoClassifierSettings, AutoClassifierSettingTab, SelectFrontmatterModal } from "settings";
 import { DEFAULT_SETTINGS } from "settings/DefaultSettings";
@@ -12,6 +13,7 @@ export default class AutoClassifierPlugin extends Plugin {
 	settings: AutoClassifierSettings;
 
 	async onload() {
+		initPluginContext(this.app, this.manifest.id);
 		await this.loadSettings();
 
 		this.app.workspace.onLayoutReady(() => {
