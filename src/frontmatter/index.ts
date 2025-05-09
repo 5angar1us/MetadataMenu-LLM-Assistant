@@ -1,9 +1,11 @@
 import { getFrontMatterInfo, TFile, MetadataCache, getAllTags } from "obsidian";
 import type { FrontmatterTemplate } from "Providers/ProvidersSetup/shared/Types";
 import { DEFAULT_FRONTMATTER_SETTING } from "settings/DefaultSettings";
-import { generateId } from "utils";
 import type { LinkType, ProcessFrontMatterFn, InsertFrontMatterParams, FrontMatter } from "utils/interface";
 
+export const generateId = (): number => {
+	return Date.now();
+};
 
 export const TAG_FRONMATTER_NAME = 'tags';
 
