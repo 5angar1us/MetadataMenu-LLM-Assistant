@@ -14,7 +14,6 @@
     import BrowseButton from './BrowseButton.svelte';
 
     
-    export let linkType = 'Normal';
     export let options: string[] = [];  
 
     const dispatch = createEventDispatcher<DispatchOptionsSelection>();  // Было ChangeOptionsSelection, должно быть DispatchOptionsSelection
@@ -42,10 +41,6 @@
 <div class="options-section">
 	<div class="options-header">
 		<h3 class="options-title">Available Options</h3>
-
-		{#if linkType === 'WikiLink'}
-			<BrowseButton on:browse={handleBrowse} />
-		{/if}
 	</div>
 
 	<p class="options-description">

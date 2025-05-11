@@ -1,13 +1,6 @@
 import AutoClassifierPlugin from 'main';
 import { PluginSettingTab, setIcon } from 'obsidian';
-
-import { addFrontmatterSetting, isTagsFrontmatterTemplate } from 'frontmatter';
-
-import { TagComponent } from './TagComponent';
-import type { ProviderConfig, FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
-import type { LinkType } from 'utils/interface';
-import FrontmatterManager from './Swelte/FrontmatterComponent/FrontmatterManager.svelte'
-import ApiSettings from './Swelte/ApiComponent.ts/ApiSettings.svelte';
+import type { ProviderConfig, FrontmatterTemplate, FormatTemplate } from 'Providers/ProvidersSetup/shared/Types';
 import type { ComponentType, SvelteComponent } from 'svelte';
 import TabsManager from './Swelte/TabsManager.svelte';
 
@@ -17,6 +10,7 @@ export interface AutoClassifierSettings {
 	selectedProvider: string;
 	selectedModel: string;
 	frontmatter: FrontmatterTemplate[];
+	formatTemplates : FormatTemplate[]
 }
 
 

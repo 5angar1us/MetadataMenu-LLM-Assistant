@@ -11,14 +11,14 @@
 	import { debounce } from 'obsidian';
 	import { createEventDispatcher } from 'svelte';
 
-	export let name: string = '';
+	export let key: string = '';
 
 	const dispatch = createEventDispatcher<DispatchChangeName>();
 
 	function handleInput(e: Event) {
 		const target = e.target as HTMLInputElement;
-		name = target.value;
-		dispatch('change', { newName: name });
+		key = target.value;
+		dispatch('change', { newName: key });
 	}
 
 	const debouncedHandleInput = debounce(handleInput, 300);
@@ -31,7 +31,7 @@
 			type="text"
 			class="frontmatter-name-input"
 			placeholder="tags"
-			value={name}
+			value={key}
 			on:input={debouncedHandleInput}
 		/>
 	</div>

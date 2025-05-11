@@ -1,20 +1,36 @@
 <script lang="ts">
 	import { onMount, setContext } from 'svelte';
-	import FrontmatterCard, { type DeleteFrontmatter, type SettingsChangeEvent } from './FrontmatterCard.svelte';
+	import FrontmatterCard, {
+		type DeleteFrontmatter,
+		type SettingsChangeEvent,
+	} from './FrontmatterCard.svelte';
 	import { WikiLinkSelector } from '../../WikiLinkSelector';
 	import FileInput from './FileInput.svelte';
 	import type { Plugin } from 'obsidian';
-	import type { FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
+	import type { FormatTemplate, FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
 	import type AutoClassifierPlugin from 'main';
 	import { DEFAULT_FRONTMATTER_SETTING } from 'settings/DefaultSettings';
-	import { addFrontmatterSetting } from 'frontmatter';
+	import { addFrontmatterSetting, generateId } from 'frontmatter';
 	import { GetMetadataMenuApi } from 'PluginAvailability';
 	import { AutoClassifierPluginKey } from '../context-keys';
 	import type { DeleteFrontmatterEvent } from './DeleteButton.svelte';
+	import { lineNumberWidgetMarker } from '@codemirror/view';
 
 	export let plugin: AutoClassifierPlugin;
+	export let onSubmit: (format: FormatTemplate) => void;
+	export let formatTemplate: FormatTemplate = {
+		id: generateId(),
+		name: '',
+		sourceNotePath: '',
+		controlFieldValue: '',
+		frontmatters: [],
+	};
 
 	let outputText = '';
+
+	setContext(AutoClassifierPluginKey, plugin);
+	onMount(() => {});
+
 	async function updateOutputText(newText: string) {
 		const mmapi = GetMetadataMenuApi(plugin.app);
 		const t = await mmapi.fileFields(newText);
@@ -30,65 +46,35 @@
 	}
 
 	let selectedFile = '';
-	function handleFileChange(newValue: string) {
-		selectedFile = newValue;
+	function handleFileChange(filePath: string) {
+		selectedFile = filePath;
 		updateOutputText(selectedFile);
+		formatTemplate.sourceNotePath = filePath;
 	}
-
-	let _frontmatters: FrontmatterTemplate[] = [];
-
-	onMount(() => {
-		_frontmatters = plugin.settings.frontmatter || [];
-	});
 
 	async function handleSettingsChange(event: SettingsChangeEvent) {
 		const { frontmatterId, updatedFrontmatter } = event.detail;
 
-		const index = _frontmatters.findIndex((f) => f.id === frontmatterId);
+		const index = formatTemplate.frontmatters.findIndex((f) => f.id === frontmatterId);
 		if (index === -1) return;
-		
-		_frontmatters[index] = updatedFrontmatter;
-
-		updatedSetting(_frontmatters);
+		formatTemplate.frontmatters[index] = updatedFrontmatter;
+		onSubmit(formatTemplate);
 	}
 
 	async function handleDelete(event: DeleteFrontmatter) {
 		const { frontmatterId } = event.detail;
 
-		const frontmatters = _frontmatters.filter((f) => f.id !== frontmatterId);
-		_frontmatters = [...frontmatters];
-
-		updatedSetting(frontmatters);
-	}
-
-	async function updatedSetting(frontmatters : FrontmatterTemplate[]){
-		plugin.settings.frontmatter = [...frontmatters];
-		await plugin.saveSettings();
-	}
-
-	function handleBrowse(frontmatterId: number) {
-		const wikiLinkSelector = new WikiLinkSelector(plugin.app);
-		wikiLinkSelector.openFileSelector((selectedLink) => {
-			const formattedLink = `[[${selectedLink}]]`;
-			const index = _frontmatters.findIndex((f) => f.id === frontmatterId);
-
-			if (index !== -1) {
-				const frontmatter = _frontmatters[index];
-				frontmatter.refs = [...(frontmatter.refs || []), formattedLink];
-
-				updatedSetting(_frontmatters);
-			}
-		});
+		const filteredFrontmatters = formatTemplate.frontmatters.filter((f) => f.id !== frontmatterId);
+		formatTemplate.frontmatters = [...filteredFrontmatters];
+		onSubmit(formatTemplate);
 	}
 
 	async function addNewFrontmatter() {
-		const frontmatters = [..._frontmatters, addFrontmatterSetting()];
+		const frontmatters = [...formatTemplate.frontmatters, addFrontmatterSetting()];
 
-		_frontmatters = [...frontmatters];
-		updatedSetting(frontmatters);
+		formatTemplate.frontmatters = [...frontmatters];
+		onSubmit(formatTemplate);
 	}
-
-	setContext(AutoClassifierPluginKey, plugin);
 </script>
 
 <div class="frontmatter-manager">
@@ -115,13 +101,12 @@
 	{/if}
 
 	<div class="frontmatter-list">
-		{#each _frontmatters as frontmatter (frontmatter.id)}
+		{#each formatTemplate.frontmatters as frontmatter (frontmatter.id)}
 			<FrontmatterCard
 				frontmatterSetting={frontmatter}
 				frontmatterId={frontmatter.id}
 				on:settingsChange={handleSettingsChange}
 				on:delete={handleDelete}
-				on:browse={() => handleBrowse(frontmatter.id)}
 			/>
 		{/each}
 	</div>

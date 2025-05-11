@@ -1,12 +1,15 @@
 <!-- TabsManager.svelte -->
 <script lang="ts">
-	import { onMount, onDestroy } from 'svelte';
+	import { onMount, onDestroy, setContext } from 'svelte';
 	import type { ComponentType, SvelteComponent } from 'svelte';
 	import type AutoClassifierPlugin from 'main';
-	import FrontmatterManager from './FrontmatterComponent/FrontmatterManager.svelte';
+	import FrontmatterManager from './FrontmatterComponent/TemplateEditor.svelte';
 	import ApiSettings from './ApiComponent.ts/ApiSettings.svelte';
+	import TemplateSettings from './TemplateSettings.svelte';
+	import { AutoClassifierPluginKey } from './context-keys';
 
 	export let plugin: AutoClassifierPlugin;
+	
 
 	type Tab = {
 		id: string;
@@ -22,12 +25,18 @@
 			componentClass: ApiSettings,
 			component: null,
 		},
+		// {
+		// 	id: 'frontmatter',
+		// 	title: 'Frontmatter Manager',
+		// 	componentClass: FrontmatterManager,
+		// 	component: null,
+		// },
 		{
-			id: 'frontmatter',
-			title: 'Frontmatter Manager',
-			componentClass: FrontmatterManager,
-			component: null,
-		},
+			id: 'TemplateSettings',
+			title: 'Tempaltes',
+			componentClass: TemplateSettings,
+			component: null
+		}
 	];
 
 	let activeTabId = tabs[0].id;
@@ -66,6 +75,7 @@
 			}
 		});
 	});
+	
 </script>
 
 <div class="tabs-container">

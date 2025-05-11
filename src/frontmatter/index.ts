@@ -1,5 +1,5 @@
 import { getFrontMatterInfo, TFile, MetadataCache, getAllTags } from "obsidian";
-import type { FrontmatterTemplate } from "Providers/ProvidersSetup/shared/Types";
+import type { FrontmatterTemplate, TemplateProperty, FailureActionDefaultValue } from "Providers/ProvidersSetup/shared/Types";
 import { DEFAULT_FRONTMATTER_SETTING } from "settings/DefaultSettings";
 import type { LinkType, ProcessFrontMatterFn, InsertFrontMatterParams, FrontMatter } from "utils/interface";
 
@@ -52,12 +52,20 @@ export const getFrontmatterSetting = (
 };
 
 export const addFrontmatterSetting = (
-	linkType: LinkType = 'Normal'
-): FrontmatterTemplate => {
+): TemplateProperty => {
 	return {
-		...DEFAULT_FRONTMATTER_SETTING,
 		id: generateId(),
-		linkType,
+		key: '',
+		overwrite: false,
+		count: undefined,
+		relevance: 0.75,
+		failureAction: {
+			type: "default-value",
+			value: ""
+		},
+		optionsMode: "all",
+		options: [],
+		optionsDescription: undefined,
 	};
 };
 

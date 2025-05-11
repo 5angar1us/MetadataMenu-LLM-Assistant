@@ -1,16 +1,16 @@
 <script lang="ts" context="module">
-	type DispatchEventsFrontmatterCard = {
+	type DispatchEvents = {
 		settingsChange: {
 			frontmatterId: number;
-			updatedFrontmatter: FrontmatterTemplate;
+			updatedFrontmatter: TemplateProperty;
 		};
 		delete: {
 			frontmatterId: number;
 		};
 	};
 
-	export type SettingsChangeEvent = CustomEvent<DispatchEventsFrontmatterCard['settingsChange']>;
-	export type DeleteFrontmatter = CustomEvent<DispatchEventsFrontmatterCard['settingsChange']>;
+	export type SettingsChangeEvent = CustomEvent<DispatchEvents['settingsChange']>;
+	export type DeleteFrontmatter = CustomEvent<DispatchEvents['settingsChange']>;
 </script>
 
 <script lang="ts">
@@ -20,14 +20,14 @@
 	import CountInput from './CountInput.svelte';
 	import DeleteButton from './DeleteButton.svelte';
 	import OptionsSection from './OptionsSection.svelte';
-	import type { FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
+	import type { TemplateProperty } from 'Providers/ProvidersSetup/shared/Types';
 
-	export let frontmatterSetting: FrontmatterTemplate;
+	export let frontmatterSetting: TemplateProperty;
 	export let frontmatterId: number;
 
-	const dispatch = createEventDispatcher<DispatchEventsFrontmatterCard>();
+	const dispatch = createEventDispatcher<DispatchEvents>();
 
-	function handleSettingsChange(update: Partial<FrontmatterTemplate>) {
+	function handleSettingsChange(update: Partial<TemplateProperty>) {
 		const updatedFrontmatter = { ...frontmatterSetting, ...update };
 		dispatch('settingsChange', { frontmatterId, updatedFrontmatter });
 	}
