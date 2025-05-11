@@ -10,7 +10,8 @@ export interface AutoClassifierSettings {
 	selectedProvider: string;
 	selectedModel: string;
 	frontmatter: FrontmatterTemplate[];
-	formatTemplates : FormatTemplate[]
+	formatTemplates : FormatTemplate[];
+	relevanceThreshold: number; 
 }
 
 

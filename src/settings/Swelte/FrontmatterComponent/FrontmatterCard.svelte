@@ -14,23 +14,45 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher } from 'svelte';
+	import { createEventDispatcher, getContext, onMount } from 'svelte';
+	import { Setting, SliderComponent } from 'obsidian';
 	import FrontmatterHeader from './FrontmatterHeader.svelte';
 	import OverwriteToggle from './OverwriteToggle.svelte';
 	import CountInput from './CountInput.svelte';
 	import DeleteButton from './DeleteButton.svelte';
 	import OptionsSection from './OptionsSection.svelte';
 	import type { TemplateProperty } from 'Providers/ProvidersSetup/shared/Types';
+	import type AutoClassifierPlugin from 'main';
+	import { AutoClassifierPluginKey } from '../context-keys';
 
 	export let frontmatterSetting: TemplateProperty;
 	export let frontmatterId: number;
 
 	const dispatch = createEventDispatcher<DispatchEvents>();
+	const plugin = getContext<AutoClassifierPlugin>(AutoClassifierPluginKey);
+
+	let relevanceSliderEl: HTMLElement;
 
 	function handleSettingsChange(update: Partial<TemplateProperty>) {
 		const updatedFrontmatter = { ...frontmatterSetting, ...update };
 		dispatch('settingsChange', { frontmatterId, updatedFrontmatter });
 	}
+
+	onMount(() => {
+		if (relevanceSliderEl && plugin) {
+			const sliderSetting = new Setting(relevanceSliderEl)
+				.setName('Relevance Threshold')
+				.setDesc('Adjust the relevance for this specific frontmatter. Overrides the global setting.');
+			
+			new SliderComponent(sliderSetting.controlEl)
+					.setLimits(0, 1, 0.01) // min, max, step
+					.setValue(frontmatterSetting.relevance ?? plugin.settings.relevanceThreshold)
+					.setDynamicTooltip()
+					.onChange(async (value) => {
+						handleSettingsChange({ relevance: value });
+					});
+		}
+	});
 
 	function handleDelete() {
 		dispatch('delete', { frontmatterId });
@@ -44,8 +66,8 @@
 		</div>
 
 		<FrontmatterHeader
-			name={frontmatterSetting.name}
-			on:change={(e) => handleSettingsChange({ name: e.detail.newName })}
+			key={frontmatterSetting.key}
+			on:change={(e) => handleSettingsChange({ key: e.detail.newName })}
 		></FrontmatterHeader>
 
 		<div class="frontmatter-settings-container">
@@ -60,11 +82,13 @@
 					on:change={(e) => handleSettingsChange({ count: e.detail.newCount })}
 				/>
 			</div>
+			
+			<!-- Контейнер для слайдера релевантности -->
+			<div bind:this={relevanceSliderEl} class="relevance-slider-container"></div>
 
 			<OptionsSection
-				options={frontmatterSetting.refs}
-				linkType={frontmatterSetting.linkType}
-				on:change={(e) => handleSettingsChange({ refs: e.detail.newOption })}
+				options={frontmatterSetting.options}
+				on:change={(e) => handleSettingsChange({ options: e.detail.newOption })}
 			/>
 		</div>
 	</div>
@@ -108,5 +132,9 @@
 		flex-wrap: wrap;
 		gap: 12px;
 		margin-bottom: 16px;
+	}
+
+	.relevance-slider-container {
+		margin-bottom: 16px; /* Добавляем отступ для слайдера */
 	}
 </style>

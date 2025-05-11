@@ -29,6 +29,7 @@ export const DEFAULT_SETTINGS: AutoClassifierSettings = {
 	selectedProvider: AIProvider.OpenAI,
 	selectedModel: OpenAIModelName.GPT_4_1_MINI,
 	frontmatter: [DEFAULT_TAG_SETTING],
-	formatTemplates : []
+	formatTemplates : [],
+	relevanceThreshold: 0.75
 }; // Default tag settings
 
