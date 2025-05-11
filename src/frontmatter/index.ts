@@ -1,6 +1,5 @@
 import { getFrontMatterInfo, TFile, MetadataCache, getAllTags } from "obsidian";
-import type { FrontmatterTemplate, TemplateProperty, FailureActionDefaultValue } from "Providers/ProvidersSetup/shared/Types";
-import { DEFAULT_FRONTMATTER_SETTING } from "settings/DefaultSettings";
+import type { FormatTemplate, TemplateProperty } from "Providers/ProvidersSetup/shared/Types";
 import type { LinkType, ProcessFrontMatterFn, InsertFrontMatterParams, FrontMatter } from "utils/interface";
 
 export const generateId = (): number => {
@@ -40,14 +39,14 @@ export const getTags = async (
 };
 
 // Moved from BaseSettingsComponent
-export const getFrontmatterSetting = (
+export const getFrontmatter = (
 	id: number,
-	settings: FrontmatterTemplate[]
-): FrontmatterTemplate => {
-	const setting = settings?.find((f) => f.id === id);
-	if (!setting) {
+	template: FormatTemplate
+): TemplateProperty => {
+	if (!template) {
 		throw new Error('Setting not found');
 	}
+	const setting = template.frontmatters.find((f) => f.id === id)!;
 	return setting;
 };
 
@@ -95,6 +94,6 @@ export function formatValuesByLinkType(values: string[], linkType: LinkType = 'N
         : values;
 }
 
-export function isTagsFrontmatterTemplate(frontmatterTemplate: FrontmatterTemplate){
-	return frontmatterTemplate.name === TAG_FRONMATTER_NAME;
+export function isTagsFrontmatterTemplate(frontmatterTemplate: TemplateProperty){
+	return frontmatterTemplate.key === TAG_FRONMATTER_NAME;
 }

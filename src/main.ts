@@ -39,7 +39,7 @@ export default class AutoClassifierPlugin extends Plugin {
 				const frontmatters = this.settings.frontmatter
 					.filter((fm) => !isTagsFrontmatterTemplate(fm)) // 내장 태그는 별도로 처리
 					.map((fm) => ({
-						name: fm.name,
+						name: fm.key,
 						id: fm.id,
 					}));
 

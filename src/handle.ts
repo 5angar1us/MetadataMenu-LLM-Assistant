@@ -2,7 +2,7 @@ import { isTagsFrontmatterTemplate, getTags, getContentWithoutFrontmatter, inser
 import type AutoClassifierPlugin from "main";
 import { Notice, TFile, App } from "obsidian";
 import { processAPIRequest } from "Providers/api";
-import type { ProviderConfig, FrontmatterTemplate } from "Providers/ProvidersSetup/shared/Types";
+import type { ProviderConfig, TemplateProperty } from "Providers/ProvidersSetup/shared/Types";
 import type { AutoClassifierSettings } from "settings";
 import { getPromptTemplate, DEFAULT_CHAT_ROLE } from "utils/templates";
 
@@ -40,34 +40,25 @@ export async function processFrontmatterItem(
     plugin: AutoClassifierPlugin,
     selectedProvider: ProviderConfig,
     currentFile: TFile,
-    frontmatter: FrontmatterTemplate
+    frontmatter: TemplateProperty
 ): Promise<void> {
 
 
     if (isTagsFrontmatterTemplate(frontmatter)) {
-        frontmatter.refs = await getTags(plugin.app.vault.getMarkdownFiles(), plugin.app.metadataCache);
+        frontmatter.options = await getTags(plugin.app.vault.getMarkdownFiles(), plugin.app.metadataCache);
         await  plugin.saveSettings();
     }
 
-    const currentValues = frontmatter.refs;
-
-    const processedValues =
-        frontmatter.linkType === 'WikiLink'
-            ? currentValues.map((value) =>
-                value.startsWith('[[') && value.endsWith(']]') ? value.slice(2, -2) : value
-            )
-            : currentValues;
-
-    if (processedValues.length === 0) {
+    if (!frontmatter.options || frontmatter.options.length === 0) {
         new Notice(
-            `⛔ ${plugin.manifest.name}: No current values found for frontmatter ${frontmatter.name}`
+            `⛔ ${plugin.manifest.name}: No current values found for frontmatter ${frontmatter.key}`
         );
         return;
     }
     const currentContent = await plugin.app.vault.read(currentFile);
     const content = getContentWithoutFrontmatter(currentContent);
 
-    const promptTemplate = getPromptTemplate(frontmatter.count, content, processedValues);
+    const promptTemplate = getPromptTemplate(frontmatter.count!, content, frontmatter.options);
 
     const chatRole = DEFAULT_CHAT_ROLE;
     const selectedModel = selectedProvider.selectedModel ||  plugin.settings.selectedModel;
@@ -85,17 +76,15 @@ export async function processFrontmatterItem(
 
         await insertToFrontMatter(processFrontMatter, {
             file: currentFile,
-            key: frontmatter.name,
+            key: frontmatter.key,
             value: apiResponse.output,
             overwrite: frontmatter.overwrite,
-            linkType: frontmatter.linkType,
         });
 
-        // Display the appropriate format in the notification based on linkType
-        const displayOutput = formatValuesByLinkType(apiResponse.output, frontmatter.linkType)
+        const displayOutput = apiResponse.output;
 
         new Notice(
-            `✅ ${apiResponse.output.length} ${frontmatter.name} added: ${displayOutput.join(', ')}`
+            `✅ ${apiResponse.output.length} ${frontmatter.key} added: ${displayOutput.join(', ')}`
         );
     } else if (apiResponse) {
         new Notice(

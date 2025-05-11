@@ -17,14 +17,6 @@ interface Model {
 	name: string;
 }
 
-export interface FrontmatterTemplate { // to -> TemplateProperty
-	id: number;
-	name: string;
-	count: number;
-	refs: string[];
-	overwrite: boolean;
-	linkType: LinkType;
-}
 // Defines how options are used for validation or suggestion
 export type OptionsMode = 'all' | 'whitelist' | 'blacklist';
 
