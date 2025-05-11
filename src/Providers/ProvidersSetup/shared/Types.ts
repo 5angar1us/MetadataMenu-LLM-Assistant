@@ -58,6 +58,15 @@ export type FailureAction =
 	| FailureActionSetOtherProperty
 	| FailureActionMoveToFolder;
 
+export type OptionItem = string & { __brand: "OptionItem" };
+
+export function ToOptions(values: string[]){
+	return values.map(asOptionItem);
+}
+export function asOptionItem(value: string): OptionItem {
+    return value as OptionItem;
+}
+
 export interface TemplateProperty {
 	id: number;                   // uuid
 	key: string;                  // frontmatter key
@@ -66,7 +75,7 @@ export interface TemplateProperty {
 	relevance: number;            // 0…1, specific relevance threshold for this property
 	failureAction: FailureAction; // Action to take if relevance threshold is not met
 	optionsMode: OptionsMode;     // How the 'options' array is to be interpreted
-	options?: string[];            // List of predefined values (e.g., for dropdowns, validation)
+	options?: OptionItem[];            // List of predefined values (e.g., for dropdowns, validation)
 	optionsDescription?: string;  // Free text description for the options (e.g., explaining their source or purpose)
 }
 

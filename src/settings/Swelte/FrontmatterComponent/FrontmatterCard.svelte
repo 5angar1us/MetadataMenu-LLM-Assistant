@@ -20,7 +20,8 @@
 	import OverwriteToggle from './OverwriteToggle.svelte';
 	import CountInput from './CountInput.svelte';
 	import DeleteButton from './DeleteButton.svelte';
-	import OptionsSection from './OptionsSection.svelte';
+	// import OptionsSection from './OptionsSection.svelte'; // Заменено на AvailableOptions
+	import AvailableOptions from './AvailableOptions.svelte'; // Новый компонент
 	import type {
 		TemplateProperty,
 	} from 'Providers/ProvidersSetup/shared/Types';
@@ -103,10 +104,12 @@
 				globalRelevanceThreshold={plugin.settings.relevanceThreshold}
 				on:change={(e) => handleSettingsChange(e.detail)}
 			/>
-
-			<OptionsSection
+			
+			<AvailableOptions
+				optionsMode={frontmatterSetting.optionsMode}
 				options={frontmatterSetting.options}
-				on:change={(e) => handleSettingsChange({ options: e.detail.newOption })}
+				failureActionType={frontmatterSetting.failureAction.type}
+				on:change={(e) => handleSettingsChange(e.detail)}
 			/>
 		</div>
 	</div>

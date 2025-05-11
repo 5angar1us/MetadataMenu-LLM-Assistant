@@ -4,10 +4,11 @@ import { CUSTOM_PROVIDER } from 'Providers/ProvidersSetup/CustomAIProvider';
 import { OPENAI_CUSTOM_PROVIDER } from 'Providers/ProvidersSetup/OpenAICompotabilityProvider';
 import { OPENAI_PROVIDER, OpenAIModelName } from 'Providers/ProvidersSetup/OpenAIProvider';
 import { OPENROUTER_PROVIDER } from 'Providers/ProvidersSetup/OpenRouterProvider';
-import type {
-	TemplateProperty,
-	FailureActionDefaultValue,
-	OptionsMode,
+import {
+	type TemplateProperty,
+	type FailureActionDefaultValue,
+	type OptionsMode,
+	ToOptions,
 } from 'Providers/ProvidersSetup/shared/Types';
 import type { AutoClassifierSettings } from 'settings';
 
@@ -26,7 +27,7 @@ export const DEFAULT_FRONTMATTER_PROPERTY_SETTINGS: TemplateProperty = {
 	relevance: 0.75, // Default relevance threshold for a new property
 	failureAction: { ...DEFAULT_FAILURE_ACTION },
 	optionsMode: 'all' as OptionsMode,
-	options: [],
+	options: ToOptions([]),
 	optionsDescription: '',
 };
 
@@ -38,7 +39,7 @@ export const DEFAULT_TAG_SETTING: TemplateProperty = {
 	relevance: 0.75, // Default relevance for tags
 	failureAction: { ...DEFAULT_FAILURE_ACTION }, // Default failure action for tags
 	optionsMode: 'all' as OptionsMode,
-	options: [],
+	options: ToOptions([]),
 	optionsDescription: '',
 	// linkType: 'Normal', // from old FrontmatterTemplate, check if needed
 };
@@ -51,5 +52,6 @@ export const DEFAULT_SETTINGS: AutoClassifierSettings = {
 	frontmatter: [DEFAULT_TAG_SETTING], // This should be TemplateProperty[]
 	formatTemplates: [],
 	relevanceThreshold: 0.75, // Global default relevance threshold
+	defaultFolderPath: ''
 };
 

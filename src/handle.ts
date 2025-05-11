@@ -2,7 +2,7 @@ import { isTagsFrontmatterTemplate, getTags, getContentWithoutFrontmatter, inser
 import type AutoClassifierPlugin from "main";
 import { Notice, TFile, App } from "obsidian";
 import { processAPIRequest } from "Providers/api";
-import type { ProviderConfig, TemplateProperty } from "Providers/ProvidersSetup/shared/Types";
+import { asOptionItem, ToOptions, type ProviderConfig, type TemplateProperty } from "Providers/ProvidersSetup/shared/Types";
 import type { AutoClassifierSettings } from "settings";
 import { getPromptTemplate, DEFAULT_CHAT_ROLE } from "utils/templates";
 
@@ -45,7 +45,8 @@ export async function processFrontmatterItem(
 
 
     if (isTagsFrontmatterTemplate(frontmatter)) {
-        frontmatter.options = await getTags(plugin.app.vault.getMarkdownFiles(), plugin.app.metadataCache);
+        const tags = await getTags(plugin.app.vault.getMarkdownFiles(), plugin.app.metadataCache);
+        frontmatter.options = ToOptions(tags);
         await  plugin.saveSettings();
     }
 
