@@ -7,9 +7,9 @@
 	import { WikiLinkSelector } from '../../WikiLinkSelector';
 	import FileInput from './FileInput.svelte';
 	import type { Plugin } from 'obsidian';
-	import type { FormatTemplate, FrontmatterTemplate } from 'Providers/ProvidersSetup/shared/Types';
+	import type { FormatTemplate} from 'Providers/ProvidersSetup/shared/Types';
 	import type AutoClassifierPlugin from 'main';
-	import { DEFAULT_FRONTMATTER_SETTING } from 'settings/DefaultSettings';
+	import { DEFAULT_FRONTMATTER_PROPERTY_SETTINGS } from 'settings/DefaultSettings';
 	import { addFrontmatterSetting, generateId } from 'frontmatter';
 	import { GetMetadataMenuApi } from 'PluginAvailability';
 	import { AutoClassifierPluginKey } from '../context-keys';

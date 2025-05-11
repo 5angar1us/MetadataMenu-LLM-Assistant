@@ -28,6 +28,33 @@
 						await plugin.saveSettings();
 					});
 			});
+		const descEl = document.createDocumentFragment();
+		const desc = document.createDocumentFragment();
+		desc.append(
+			'Specify the folder path where the file will be moved',
+			' if it does not meet the relevance threshold.',
+			descEl.createEl('br'),
+			descEl.createEl('strong', { text: 'Note: ' }),
+			'This option is applied when the "Move to Folder" action is selected',
+			' in the "Action on Relevance Threshold Failure" drop down',
+			' for at least one frontmatter in template.'
+		);
+
+		new Setting(settingEl)
+			.setName('Folder Path for Irrelevant Files')
+			.setDesc(desc)
+			.addText(
+				(
+					text // Placeholder for FileSuggest or similar
+				) =>
+					text
+						.setPlaceholder('Enter folder path')
+						.setValue(plugin.settings.defaultFolderPath)
+						.onChange(async (value) => {
+							plugin.settings.defaultFolderPath = value;
+							await plugin.saveSettings();
+						})
+			);
 	}
 
 	onMount(() => {

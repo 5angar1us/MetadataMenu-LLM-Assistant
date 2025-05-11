@@ -15,15 +15,19 @@
 
 <script lang="ts">
 	import { createEventDispatcher, getContext, onMount } from 'svelte';
-	import { Setting, SliderComponent } from 'obsidian';
+	import { Setting } from 'obsidian';
 	import FrontmatterHeader from './FrontmatterHeader.svelte';
 	import OverwriteToggle from './OverwriteToggle.svelte';
 	import CountInput from './CountInput.svelte';
 	import DeleteButton from './DeleteButton.svelte';
 	import OptionsSection from './OptionsSection.svelte';
-	import type { TemplateProperty } from 'Providers/ProvidersSetup/shared/Types';
+	import type {
+		TemplateProperty,
+	} from 'Providers/ProvidersSetup/shared/Types';
 	import type AutoClassifierPlugin from 'main';
 	import { AutoClassifierPluginKey } from '../context-keys';
+	import RelevanceSettings from 'settings/Swelte/FrontmatterComponent/RelevanceSettings.svelte';
+	// import { TextComponent, DropdownComponent } from 'obsidian'; // No longer needed here
 
 	export let frontmatterSetting: TemplateProperty;
 	export let frontmatterId: number;
@@ -31,26 +35,36 @@
 	const dispatch = createEventDispatcher<DispatchEvents>();
 	const plugin = getContext<AutoClassifierPlugin>(AutoClassifierPluginKey);
 
-	let relevanceSliderEl: HTMLElement;
-
-	function handleSettingsChange(update: Partial<TemplateProperty>) {
-		const updatedFrontmatter = { ...frontmatterSetting, ...update };
-		dispatch('settingsChange', { frontmatterId, updatedFrontmatter });
+	// Ensure failureAction is initialized
+	if (!frontmatterSetting.failureAction) {
+		frontmatterSetting.failureAction = { type: 'default-value', value: '' };
 	}
 
+	function handleSettingsChange(update: Partial<TemplateProperty>) {
+		// Directly merge the update into frontmatterSetting
+		// Create a new object for frontmatterSetting to ensure reactivity if passed down
+		// and to correctly update the object reference for Svelte's reactivity.
+		const newFrontmatterSetting = { ...frontmatterSetting, ...update };
+
+		// If failureAction is part of the update, ensure it's a new object (deep copy for failureAction)
+		if (update.failureAction) {
+			newFrontmatterSetting.failureAction = { ...update.failureAction };
+		}
+		
+		// Update the reactive prop
+		frontmatterSetting = newFrontmatterSetting;
+
+		// Dispatch the fully updated frontmatterSetting object
+		dispatch('settingsChange', { frontmatterId, updatedFrontmatter: frontmatterSetting });
+	}
+	
 	onMount(() => {
-		if (relevanceSliderEl && plugin) {
-			const sliderSetting = new Setting(relevanceSliderEl)
-				.setName('Relevance Threshold')
-				.setDesc('Adjust the relevance for this specific frontmatter. Overrides the global setting.');
-			
-			new SliderComponent(sliderSetting.controlEl)
-					.setLimits(0, 1, 0.01) // min, max, step
-					.setValue(frontmatterSetting.relevance ?? plugin.settings.relevanceThreshold)
-					.setDynamicTooltip()
-					.onChange(async (value) => {
-						handleSettingsChange({ relevance: value });
-					});
+		// Ensure failureAction is initialized if not already
+		// This check is important if the initial frontmatterSetting might not have it
+		if (!frontmatterSetting.failureAction) {
+			frontmatterSetting.failureAction = { type: 'default-value', value: '' };
+			// No immediate dispatch needed here, as this is initial setup.
+			// The component consuming this will get the initialized version.
 		}
 	});
 
@@ -83,8 +97,12 @@
 				/>
 			</div>
 			
-			<!-- Контейнер для слайдера релевантности -->
-			<div bind:this={relevanceSliderEl} class="relevance-slider-container"></div>
+			<RelevanceSettings
+				relevance={frontmatterSetting.relevance}
+				failureAction={frontmatterSetting.failureAction}
+				globalRelevanceThreshold={plugin.settings.relevanceThreshold}
+				on:change={(e) => handleSettingsChange(e.detail)}
+			/>
 
 			<OptionsSection
 				options={frontmatterSetting.options}
@@ -134,7 +152,4 @@
 		margin-bottom: 16px;
 	}
 
-	.relevance-slider-container {
-		margin-bottom: 16px; /* Добавляем отступ для слайдера */
-	}
 </style>

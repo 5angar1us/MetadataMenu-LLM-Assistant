@@ -25,17 +25,57 @@ export interface FrontmatterTemplate { // to -> TemplateProperty
 	overwrite: boolean;
 	linkType: LinkType;
 }
+// Defines how options are used for validation or suggestion
+export type OptionsMode = 'all' | 'whitelist' | 'blacklist';
+
+// Defines the types of actions to take if relevance threshold is not met
+export type FailureActionType =
+  | 'default-value'
+  | 'add-tag'
+  | 'set-other-property'
+  | 'move-to-folder';
+
+// Base interface for failure actions
+export interface FailureActionBase {
+	type: FailureActionType;
+}
+
+// Action to set a default value from the predefined options
+export interface FailureActionDefaultValue extends FailureActionBase {
+	type: 'default-value';
+	value: string;          // Value selected from 'options' or a custom suggest-input
+}
+
+
+// Action to set another property on the note
+export interface FailureActionSetOtherProperty extends FailureActionBase {
+	type: 'set-other-property';
+	targetKey: string;      // Key of the property to set, suggest-input
+	targetValue: string;    // Value to set for the targetKey, suggest-input (context-aware)
+}
+
+// Action to move the note to a specified folder
+export interface FailureActionMoveToFolder extends FailureActionBase {
+	type: 'move-to-folder';
+	folder: string;         // Destination folder path, suggest-input (SearchComponent)
+}
+
+// Union type for all possible failure actions
+export type FailureAction =
+	| FailureActionDefaultValue
+	| FailureActionSetOtherProperty
+	| FailureActionMoveToFolder;
 
 export interface TemplateProperty {
 	id: number;                   // uuid
 	key: string;                  // frontmatter key
 	overwrite: boolean;
-	count?: number;               // >=0, если множественный тип
-	relevance: number;            // 0…1
-	failureAction: FailureAction;
-	optionsMode: OptionsMode;
-	options: string[];            // список значений из textarea
-	optionsDescription?: string;  // free text
+	count?: number;               // >=0, if the type supports multiple values
+	relevance: number;            // 0…1, specific relevance threshold for this property
+	failureAction: FailureAction; // Action to take if relevance threshold is not met
+	optionsMode: OptionsMode;     // How the 'options' array is to be interpreted
+	options?: string[];            // List of predefined values (e.g., for dropdowns, validation)
+	optionsDescription?: string;  // Free text description for the options (e.g., explaining their source or purpose)
 }
 
 export interface FormatTemplate {
@@ -45,43 +85,6 @@ export interface FormatTemplate {
 	controlFieldValue: string;  // «Значение управляющего поля» (readonly)
 	frontmatters: TemplateProperty[];
 }
-
-export type OptionsMode = 'all' | 'whitelist' | 'blacklist';
-
-export type FailureActionType =
-  | 'default-value'
-  | 'add-tag'
-  | 'set-other-property'
-  | 'move-to-folder';
-
-
-export interface FailureActionBase {
-	type: FailureActionType;
-}
-
-export interface FailureActionDefaultValue extends FailureActionBase {
-	type: 'default-value';
-	value: string;          // suggest-input
-}
-export interface FailureActionAddTag extends FailureActionBase {
-	type: 'add-tag';
-	tag: string;            // suggest-input
-}
-export interface FailureActionSetOtherProperty extends FailureActionBase {
-	type: 'set-other-property';
-	targetKey: string;      // suggest-input
-	targetValue: string;    // suggest-input, зависит от targetKey
-}
-export interface FailureActionMoveToFolder extends FailureActionBase {
-	type: 'move-to-folder';
-	folder: string;         // suggest-input => SearchComponent
-}
-
-export type FailureAction =
-	| FailureActionDefaultValue
-	| FailureActionAddTag
-	| FailureActionSetOtherProperty
-	| FailureActionMoveToFolder;
 
 // Тип для использования в TypeScript
 export type StructuredOutput = z.infer<typeof StructuredOutputSchema>;

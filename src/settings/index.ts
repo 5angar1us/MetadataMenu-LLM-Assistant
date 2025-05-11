@@ -1,6 +1,6 @@
 import AutoClassifierPlugin from 'main';
 import { PluginSettingTab, setIcon } from 'obsidian';
-import type { ProviderConfig, FrontmatterTemplate, FormatTemplate } from 'Providers/ProvidersSetup/shared/Types';
+import type { ProviderConfig, TemplateProperty, FormatTemplate } from 'Providers/ProvidersSetup/shared/Types';
 import type { ComponentType, SvelteComponent } from 'svelte';
 import TabsManager from './Swelte/TabsManager.svelte';
 
@@ -9,9 +9,10 @@ export interface AutoClassifierSettings {
 	providers: ProviderConfig[];
 	selectedProvider: string;
 	selectedModel: string;
-	frontmatter: FrontmatterTemplate[];
+	frontmatter: TemplateProperty[]; // Changed from FrontmatterTemplate[]
 	formatTemplates : FormatTemplate[];
-	relevanceThreshold: number; 
+	relevanceThreshold: number;
+	defaultFolderPath:string;
 }
 
 
