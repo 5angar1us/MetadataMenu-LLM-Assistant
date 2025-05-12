@@ -72,7 +72,7 @@ export interface TemplateProperty {
 	key: string;                  // frontmatter key
 	overwrite: boolean;
 	count?: number;               // >=0, if the type supports multiple values
-	relevance: number;            // 0…1, specific relevance threshold for this property
+	relevance?: number;            // 0…1, specific relevance threshold for this property
 	failureAction: FailureAction; // Action to take if relevance threshold is not met
 	optionsMode: OptionsMode;     // How the 'options' array is to be interpreted
 	options?: OptionItem[];            // List of predefined values (e.g., for dropdowns, validation)

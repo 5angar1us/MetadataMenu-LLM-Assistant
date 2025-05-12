@@ -6,7 +6,13 @@
 
 <script lang="ts">
 	import { createEventDispatcher, getContext, onMount } from 'svelte';
-	import { Setting, SliderComponent, DropdownComponent, TextComponent } from 'obsidian';
+	import {
+		Setting,
+		SliderComponent,
+		DropdownComponent,
+		TextComponent,
+		ButtonComponent,
+	} from 'obsidian';
 	import type {
 		TemplateProperty,
 		FailureAction,
@@ -28,6 +34,8 @@
 	let relevanceSliderEl: HTMLElement;
 	let failureActionContainerEl: HTMLElement;
 	let failureActionInputsContainerEl: HTMLElement;
+
+	let sliderComponentInstance: SliderComponent | null = null;
 
 	// Initialize currentFailureAction from prop
 	let currentFailureAction: FailureAction = { ...failureAction };
@@ -125,14 +133,22 @@
 			const sliderSetting = new Setting(relevanceSliderEl)
 				.setName('Relevance Threshold')
 				.setDesc(
-					'Adjust the relevance for this specific frontmatter. Overrides the global setting.'
-				);
+					'Adjust the relevance for this specific frontmatter. Overrides the global setting. Use the reset button to revert to the global threshold.'
+				)
 
-			new SliderComponent(sliderSetting.controlEl)
+			sliderComponentInstance = new SliderComponent(sliderSetting.controlEl)
 				.setLimits(0, 1, 0.01) // min, max, step
 				.setValue(relevance ?? globalRelevanceThreshold)
 				.setDynamicTooltip()
 				.onChange(handleRelevanceChange);
+
+			const resetSliderButton = new ButtonComponent(sliderSetting.controlEl)
+				.setButtonText('Reset')
+				.setIcon('rotate-ccw')
+				.setTooltip(`Reset to global threshold`)
+				.onClick(() => {
+					dispatch('change', { relevance: undefined });
+				});
 		}
 
 		if (failureActionContainerEl) {
@@ -189,6 +205,12 @@
 					renderFailureActionInputs();
 				}
 			}
+		}
+	}
+
+	$: {
+		if (sliderComponentInstance) {
+			sliderComponentInstance.setValue(relevance ?? globalRelevanceThreshold);
 		}
 	}
 </script>
