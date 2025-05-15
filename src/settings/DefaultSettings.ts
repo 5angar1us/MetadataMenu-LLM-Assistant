@@ -52,6 +52,7 @@ export const DEFAULT_SETTINGS: AutoClassifierSettings = {
 	frontmatter: [DEFAULT_TAG_SETTING], // This should be TemplateProperty[]
 	formatTemplates: [],
 	relevanceThreshold: 0.75, // Global default relevance threshold
-	defaultFolderPath: ''
+	defaultFolderPath: '',
+	metadataMenufileClassAlias: ''
 };
 

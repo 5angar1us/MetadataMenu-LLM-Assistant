@@ -3,7 +3,7 @@ import { processFrontmatter, processAllFrontmatter } from "handle";
 import { Plugin, Notice } from "obsidian";
 import { getAPI, type DataviewApi } from "obsidian-dataview";
 import { initPluginContext } from "obsidian-dev-utils/obsidian/Plugin/PluginContext";
-import { checkAvailabilityDataview, checkAvailabilityMetadataMenu, checkPluginAvailability, GetMetadataMenuApi } from "PluginAvailability";
+import { checkAvailabilityDataview, checkAvailabilityMetadataMenu, checkPluginAvailability, GetMetadataMenuApi, GetMetadataMenufileClassAlias as ExtractMetadataMenufileClassAlias } from "PluginAvailability";
 import { type AutoClassifierSettings, AutoClassifierSettingTab, SelectFrontmatterModal } from "settings";
 import { DEFAULT_SETTINGS } from "settings/DefaultSettings";
 import { mergeDefaults } from "utils/merge-settings";
@@ -19,6 +19,8 @@ export default class AutoClassifierPlugin extends Plugin {
 		this.app.workspace.onLayoutReady(() => {
 			const dataviewAvailable = checkAvailabilityDataview(this.app);
 			const metadataMenuAvailable = checkAvailabilityMetadataMenu(this.app);
+			const metadataMenufileClassAlias = ExtractMetadataMenufileClassAlias(this.app);
+			this.settings.metadataMenufileClassAlias = metadataMenufileClassAlias;
 		});
 
 		this.setupCommand();

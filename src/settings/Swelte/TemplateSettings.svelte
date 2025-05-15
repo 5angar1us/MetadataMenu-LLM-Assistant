@@ -55,15 +55,27 @@
 							await plugin.saveSettings();
 						})
 			);
+
+		new Setting(settingEl)
+			.setName('FileClass alias for Metadata Menu')
+			.setDesc(
+				'This alias is used to define fileClass in the Metadata Menu plugin. ' +
+					'It is read from Metadata Menu settings when Auto Classifier plugin loads and used for integration. ' +
+					'This value cannot be changed here, it is for informational purposes only.'
+			)
+			.addText((text) =>
+				text
+					.setValue(
+						plugin.settings.metadataMenufileClassAlias ||
+							'Not defined or Metadata Menu is not active'
+					)
+					.setDisabled(true)
+			);
 	}
 
 	onMount(() => {
 		createTemplateSettings();
 	});
-
-	// $: if (settingEl) { // Эта строка может вызывать многократное пересоздание настроек.
-	// 	createTemplateSettings(); // Лучше обновлять настройки более гранулярно, если необходимо.
-	// }                            // Пока оставим, но имейте в виду.
 </script>
 
 <div bind:this={settingEl}></div>

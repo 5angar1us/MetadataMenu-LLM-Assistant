@@ -51,3 +51,30 @@ export function GetMetadataMenuApi(app: App): IMetadataMenuApi {
 
     return api;
 }
+
+export function GetMetadataMenufileClassAlias(app: App): string {
+    try {
+
+        if (!checkAvailabilityMetadataMenu(app)) {
+            throw new Error("Metadata Menu plugin is not available or not enabled");
+        }
+
+        const fileClassSettingName = 'fileClassAlias';
+
+         //@ts-ignore
+        const metadatamenuplugin = app.plugins.plugins[METADATA_MENU.id];
+
+         //@ts-ignore
+        const settings = metadatamenuplugin.settings;
+        const fileClassAlias: string = settings[fileClassSettingName];
+
+        if (!fileClassAlias) {
+            throw new Error(`File class alias setting '${fileClassSettingName}' is not configured`);
+        }
+
+        return fileClassAlias;
+    } catch (error) {
+        console.error("Failed to get Metadata Menu file class alias:", error);
+        throw error;
+    }
+}

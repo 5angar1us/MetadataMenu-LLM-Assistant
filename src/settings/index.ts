@@ -13,6 +13,7 @@ export interface AutoClassifierSettings {
 	formatTemplates : FormatTemplate[];
 	relevanceThreshold: number;
 	defaultFolderPath:string;
+	metadataMenufileClassAlias:string;
 }
 
 
