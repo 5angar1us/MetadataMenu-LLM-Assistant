@@ -11,6 +11,10 @@ export class FileSuggest extends AbstractInputSuggest<string> {
     }
 
     getSuggestions(inputStr: string): string[] {
+        // Without this, it doesn't work well with modal windows. The first element there gets focused immediately after opening. 
+        // If this element has the suggest feature, it will immediately show the suggest. This looks extremely unappealing.
+        if (!inputStr) return [];
+
         const inputLower = inputStr.toLowerCase();
         return this.Files.filter(folder => 
             folder.toLowerCase().includes(inputLower)
