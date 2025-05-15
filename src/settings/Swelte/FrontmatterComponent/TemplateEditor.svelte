@@ -138,18 +138,20 @@
 		app={plugin.app}
 		onChange={handleFileChange}
 	/>
-	{#if outputText}
-		<div class="output-textarea">
-			<label>
-				Output Information
-				<textarea
-					readonly
-					bind:value={outputText}
-					placeholder="Output will appear here..."
-					class="output-field"
-				/>
-			</label>
-		</div>
+	{#if plugin.settings.showDebugOutput}
+		{#if outputText}
+			<div class="output-textarea">
+				<label>
+					Output Information
+					<textarea
+						readonly
+						bind:value={outputText}
+						placeholder="Output will appear here..."
+						class="output-field"
+					/>
+				</label>
+			</div>
+		{/if}
 	{/if}
 
 	{#if formatTemplate.frontmatters.length > 0}
