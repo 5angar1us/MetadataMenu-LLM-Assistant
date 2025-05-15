@@ -8,8 +8,8 @@
 	import { GetMetadataMenuApi } from 'PluginAvailability';
 	import { AutoClassifierPluginKey } from '../context-keys';
 	import ToggleWrapper from './ToggleWrapper.svelte';
+	import { ValidatedFieldInfoSchema, type ValidatedFieldInfo } from '../../../types/metadataMenuSchemas';
 	import type { SettingsChangeEvent, DeleteFrontmatter } from './FrontmatterCard.svelte';
-
 
 	export let plugin: AutoClassifierPlugin;
 	export let onSubmit: (format: FormatTemplate) => void;
@@ -27,14 +27,18 @@
 	// Map to store references to FrontmatterCard components
 	let frontmatterCardRefs = new Map<number, { setExpanded: (value: boolean) => void }>();
 
+	let sourceFileFieldInfo: Array<ValidatedFieldInfo> = [];
+
 	setContext(AutoClassifierPluginKey, plugin);
+
 	onMount(() => {
 		if (templateNameContainer) {
 			new Setting(templateNameContainer)
 				.setName('Template Name')
 				.setDesc('Enter a name for this template configuration.')
 				.addText((text: TextComponent) => {
-					text.setPlaceholder('E.g., Meeting Notes Template')
+					text
+						.setPlaceholder('E.g., Meeting Notes Template')
 						.setValue(formatTemplate.name)
 						.onChange(async (value) => {
 							formatTemplate.name = value;
@@ -42,47 +46,94 @@
 						});
 				});
 		}
-		// Moved initial updateOutputText call into onMount to ensure plugin.app is ready
 		if (formatTemplate.sourceNotePath) {
-			updateOutputText(formatTemplate.sourceNotePath);
+			updateSourceData(formatTemplate.sourceNotePath);
+		} else {
+			showInOutputTextIfDebug('No source file initially selected.')
 		}
 	});
 
-	async function updateOutputText(newText: string) {
+	async function updateSourceData(filePath: string) {
 		const mmapi = GetMetadataMenuApi(plugin.app);
-		if (!mmapi) {
-			outputText = "Metadata Menu API not available.";
-			console.warn("Metadata Menu API not available during updateOutputText call.");
-			return;
-		}
-		try {
-			const tFile = plugin.app.vault.getAbstractFileByPath(newText);
-			if (!tFile) {
-				outputText = `File not found: ${newText}`;
-				console.warn(`File not found during updateOutputText: ${newText}`);
-				return;
-			}
-			const t = await mmapi.fileFields(newText); 
-			const t2 = Object.values(t);
-			const t3 = t2.map((field) => ({
-				name: field.name,
-				type: field.type,
-				options: field.options,
-			}));
-			const t4 = JSON.stringify(t3, null, 2); 
+		let currentOutputText = '';
+		let newSourceInfo: Array<ValidatedFieldInfo> = [];
 
-			outputText = t4;
+		if (!mmapi) {
+			currentOutputText = 'Metadata Menu API not available.';
+			if (plugin.settings.showDebugOutput) console.warn(currentOutputText);
+
+			showInOutputTextIfDebug(currentOutputText);
+		}
+		if (!filePath) {
+			currentOutputText = 'No file selected to analyze.';
+			showInOutputTextIfDebug(currentOutputText);
+		}
+
+		const tFile = plugin.app.vault.getAbstractFileByPath(filePath);
+
+		if (!tFile) {
+			currentOutputText = `File not found: ${filePath}`;
+			if (plugin.settings.showDebugOutput) console.warn(currentOutputText);
+			showInOutputTextIfDebug(currentOutputText);
+		}
+
+		try {
+			const rawFields = await mmapi.fileFields(filePath);
+			const validatedFields: Array<ValidatedFieldInfo> = [];
+			const fieldsForDebug: any[] = [];
+
+			for (const field of Object.values(rawFields)) {
+				const fieldDataToParse = {
+					name: field.name,
+					type: field.type, // This should align with FieldTypeSchema in metadataMenuSchemas.ts
+					options: field.options || {}, // Ensure options is an object
+				};
+				fieldsForDebug.push(fieldDataToParse);
+
+				const parseResult = ValidatedFieldInfoSchema.safeParse(fieldDataToParse);
+				if (parseResult.success) {
+					validatedFields.push(parseResult.data);
+				} else {
+					if (plugin.settings.showDebugOutput) {
+						console.warn(
+							`Validation failed for field '${field.name}' (type: ${field.type}):`,
+							parseResult.error.flatten()
+						);
+					}
+				}
+			}
+			newSourceInfo = validatedFields;
+			currentOutputText = JSON.stringify(fieldsForDebug, null, 2);
 		} catch (error) {
-			console.error("Error fetching file fields for:", newText, error);
-			outputText = "Error fetching file fields. See console for details.";
+			currentOutputText = 'Error fetching or parsing file fields. See console for details.';
+			if (plugin.settings.showDebugOutput)
+				console.error(`Error processing file '${filePath}':`, error);
+		}
+
+		sourceFileFieldInfo = newSourceInfo;
+		showInOutputTextIfDebug(currentOutputText)
+	}
+
+	function showInOutputTextIfDebug(currentOutputText: string) {
+		if (plugin.settings.showDebugOutput) {
+			outputText = currentOutputText;
+		} else {
+			outputText = '';
 		}
 	}
 
+	// Reactive statement to handle toggling of showDebugOutput
+	$: if (plugin?.settings) {
+		// Ensure plugin and settings are available
+		// This will re-trigger updateSourceDataAndDebugOutput if selectedFile exists,
+		// or set a default message, effectively updating outputText based on showDebugOutput.
+		updateSourceData(selectedFile);
+	}
 	let selectedFile = formatTemplate.sourceNotePath || '';
 
 	function handleFileChange(filePath: string) {
 		selectedFile = filePath;
-		updateOutputText(selectedFile);
+		updateSourceData(selectedFile);
 		formatTemplate.sourceNotePath = filePath;
 		onSubmit(formatTemplate);
 	}
@@ -120,11 +171,11 @@
 
 	// Functions to control all FrontmatterCard components
 	function expandAllDetails() {
-		frontmatterCardRefs.forEach(card => card.setExpanded(true));
+		frontmatterCardRefs.forEach((card) => card.setExpanded(true));
 	}
 
 	function collapseAllDetails() {
-		frontmatterCardRefs.forEach(card => card.setExpanded(false));
+		frontmatterCardRefs.forEach((card) => card.setExpanded(false));
 	}
 </script>
 
@@ -155,17 +206,17 @@
 	{/if}
 
 	{#if formatTemplate.frontmatters.length > 0}
-	<div class="global-frontmatter-controls">
-		<button on:click={expandAllDetails} class="clickable-icon">Expand All</button>
-		<button on:click={collapseAllDetails} class="clickable-icon">Collapse All</button>
-	</div>
+		<div class="global-frontmatter-controls">
+			<button on:click={expandAllDetails} class="clickable-icon">Expand All</button>
+			<button on:click={collapseAllDetails} class="clickable-icon">Collapse All</button>
+		</div>
 	{/if}
 
 	<div class="frontmatter-list">
 		{#each formatTemplate.frontmatters as frontmatter (frontmatter.id)}
 			<ToggleWrapper
 				item={frontmatter}
-				frontmatterCardRefs={frontmatterCardRefs}
+				{frontmatterCardRefs}
 				on:settingsChange={handleSettingsChange}
 				on:delete={handleDelete}
 			/>
