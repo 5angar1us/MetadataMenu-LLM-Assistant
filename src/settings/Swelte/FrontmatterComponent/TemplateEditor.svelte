@@ -7,6 +7,7 @@
 	import { WikiLinkSelector } from '../../WikiLinkSelector';
 	import FileInput from './FileInput.svelte';
 	import type { Plugin } from 'obsidian';
+	import { Setting, TextComponent } from 'obsidian';
 	import type { FormatTemplate} from 'Providers/ProvidersSetup/shared/Types';
 	import type AutoClassifierPlugin from 'main';
 	import { DEFAULT_FRONTMATTER_PROPERTY_SETTINGS } from 'settings/DefaultSettings';
@@ -27,9 +28,24 @@
 	};
 
 	let outputText = '';
+	let templateNameContainer: HTMLElement;
 
 	setContext(AutoClassifierPluginKey, plugin);
-	onMount(() => {});
+	onMount(() => {
+		if (templateNameContainer) {
+			new Setting(templateNameContainer)
+				.setName('Template Name')
+				.setDesc('Enter a name for this template configuration.')
+				.addText((text: TextComponent) => {
+					text.setPlaceholder('E.g., Meeting Notes Template')
+						.setValue(formatTemplate.name)
+						.onChange(async (value) => {
+							formatTemplate.name = value;
+							onSubmit(formatTemplate);
+						});
+				});
+		}
+	});
 
 	async function updateOutputText(newText: string) {
 		const mmapi = GetMetadataMenuApi(plugin.app);
@@ -50,6 +66,7 @@
 		selectedFile = filePath;
 		updateOutputText(selectedFile);
 		formatTemplate.sourceNotePath = filePath;
+		onSubmit(formatTemplate);
 	}
 
 	async function handleSettingsChange(event: SettingsChangeEvent) {
@@ -78,6 +95,7 @@
 </script>
 
 <div class="frontmatter-manager">
+	<div bind:this={templateNameContainer} />
 	<FileInput
 		value={selectedFile}
 		placeholder="Search for a file..."
