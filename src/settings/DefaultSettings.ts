@@ -53,6 +53,7 @@ export const DEFAULT_SETTINGS: AutoClassifierSettings = {
 	formatTemplates: [],
 	relevanceThreshold: 0.75, // Global default relevance threshold
 	defaultFolderPath: '',
-	metadataMenufileClassAlias: ''
+	metadataMenufileClassAlias: '',
+	showDebugOutput: false,
 };
 

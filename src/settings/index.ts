@@ -14,6 +14,7 @@ export interface AutoClassifierSettings {
 	relevanceThreshold: number;
 	defaultFolderPath:string;
 	metadataMenufileClassAlias:string;
+	showDebugOutput: boolean;
 }
 
 

@@ -71,6 +71,18 @@
 					)
 					.setDisabled(true)
 			);
+
+		new Setting(settingEl)
+			.setName('Enable Debug Mode')
+			.setDesc('Show additional debug information')
+			.addToggle(toggle => {
+				toggle
+					.setValue(plugin.settings.showDebugOutput)
+					.onChange(async (value) => {
+						plugin.settings.showDebugOutput = value;
+						await plugin.saveSettings();
+					});
+			});
 	}
 
 	onMount(() => {
