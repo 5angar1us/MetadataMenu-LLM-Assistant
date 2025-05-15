@@ -10,7 +10,7 @@
 	};
 
 	export type SettingsChangeEvent = CustomEvent<DispatchEvents['settingsChange']>;
-	export type DeleteFrontmatter = CustomEvent<DispatchEvents['settingsChange']>;
+	export type DeleteFrontmatter = CustomEvent<DispatchEvents['delete']>; // MODIFIED: Corrected to use DispatchEvents['delete']
 </script>
 
 <script lang="ts">
@@ -20,18 +20,26 @@
 	import OverwriteToggle from './OverwriteToggle.svelte';
 	import CountInput from './CountInput.svelte';
 	import DeleteButton from './DeleteButton.svelte';
-	// import OptionsSection from './OptionsSection.svelte'; // Заменено на AvailableOptions
-	import AvailableOptions from './AvailableOptions.svelte'; // Новый компонент
+	import AvailableOptions from './AvailableOptions.svelte';
 	import type {
 		TemplateProperty,
 	} from 'Providers/ProvidersSetup/shared/Types';
 	import type AutoClassifierPlugin from 'main';
 	import { AutoClassifierPluginKey } from '../context-keys';
 	import RelevanceSettings from 'settings/Swelte/FrontmatterComponent/RelevanceSettings.svelte';
-	// import { TextComponent, DropdownComponent } from 'obsidian'; // No longer needed here
 
 	export let frontmatterSetting: TemplateProperty;
 	export let frontmatterId: number;
+
+	let expanded = true; // Default to expanded
+
+	export function setExpanded(value: boolean) {
+		expanded = value;
+	}
+
+	function toggleExpansion() {
+		expanded = !expanded;
+	}
 
 	const dispatch = createEventDispatcher<DispatchEvents>();
 	const plugin = getContext<AutoClassifierPlugin>(AutoClassifierPluginKey);
@@ -70,13 +78,21 @@
 	});
 
 	function handleDelete() {
-		dispatch('delete', { frontmatterId });
+		// Теперь тип dispatch('delete', ...) будет правильно соотноситься с DeleteFrontmatter
+		dispatch('delete', { frontmatterId }); 
 	}
 </script>
 
 <div class="frontmatter-container" data-frontmatter-id={frontmatterId}>
 	<div class="frontmatter-card">
-		<div class="delete-button-container">
+		<div class="card-actions-container">
+			<button
+				class="toggle-details-button"
+				on:click={toggleExpansion}
+				title={expanded ? 'Collapse details' : 'Expand details'}
+			>
+				{expanded ? '[-]' : '[+]'}
+			</button>
 			<DeleteButton on:delete={handleDelete} />
 		</div>
 
@@ -85,6 +101,7 @@
 			on:change={(e) => handleSettingsChange({ key: e.detail.newName })}
 		></FrontmatterHeader>
 
+		{#if expanded}
 		<div class="frontmatter-settings-container">
 			<div class="frontmatter-controls-row">
 				<OverwriteToggle
@@ -112,15 +129,34 @@
 				on:change={(e) => handleSettingsChange(e.detail)}
 			/>
 		</div>
+		{/if}
 	</div>
 </div>
 
 <style>
-	.delete-button-container {
+	.card-actions-container {
 		position: absolute;
 		right: 8px;
 		top: 8px;
-		transform: none;
+		display: flex;
+		align-items: center;
+		gap: 6px; /* Space between toggle and delete buttons */
+	}
+
+	.toggle-details-button {
+		background: transparent;
+		border: none;
+		cursor: pointer;
+		font-family: var(--font-monospace, monospace);
+		font-size: 1.1em;
+		padding: 2px 4px;
+		color: var(--text-muted);
+		border-radius: var(--radius-s);
+	}
+
+	.toggle-details-button:hover {
+		color: var(--text-normal);
+		background-color: var(--background-modifier-hover);
 	}
 
 	.frontmatter-name-container {

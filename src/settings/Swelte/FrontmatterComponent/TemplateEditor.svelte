@@ -1,21 +1,15 @@
 <script lang="ts">
 	import { onMount, setContext } from 'svelte';
-	import FrontmatterCard, {
-		type DeleteFrontmatter,
-		type SettingsChangeEvent,
-	} from './FrontmatterCard.svelte';
-	import { WikiLinkSelector } from '../../WikiLinkSelector';
 	import FileInput from './FileInput.svelte';
-	import type { Plugin } from 'obsidian';
 	import { Setting, TextComponent } from 'obsidian';
-	import type { FormatTemplate} from 'Providers/ProvidersSetup/shared/Types';
+	import type { FormatTemplate, TemplateProperty } from 'Providers/ProvidersSetup/shared/Types';
 	import type AutoClassifierPlugin from 'main';
-	import { DEFAULT_FRONTMATTER_PROPERTY_SETTINGS } from 'settings/DefaultSettings';
 	import { addFrontmatterSetting, generateId } from 'frontmatter';
 	import { GetMetadataMenuApi } from 'PluginAvailability';
 	import { AutoClassifierPluginKey } from '../context-keys';
-	import type { DeleteFrontmatterEvent } from './DeleteButton.svelte';
-	import { lineNumberWidgetMarker } from '@codemirror/view';
+	import ToggleWrapper from './ToggleWrapper.svelte';
+	import type { SettingsChangeEvent, DeleteFrontmatter } from './FrontmatterCard.svelte';
+
 
 	export let plugin: AutoClassifierPlugin;
 	export let onSubmit: (format: FormatTemplate) => void;
@@ -29,6 +23,9 @@
 
 	let outputText = '';
 	let templateNameContainer: HTMLElement;
+
+	// Map to store references to FrontmatterCard components
+	let frontmatterCardRefs = new Map<number, { setExpanded: (value: boolean) => void }>();
 
 	setContext(AutoClassifierPluginKey, plugin);
 	onMount(() => {
@@ -45,23 +42,44 @@
 						});
 				});
 		}
+		// Moved initial updateOutputText call into onMount to ensure plugin.app is ready
+		if (formatTemplate.sourceNotePath) {
+			updateOutputText(formatTemplate.sourceNotePath);
+		}
 	});
 
 	async function updateOutputText(newText: string) {
 		const mmapi = GetMetadataMenuApi(plugin.app);
-		const t = await mmapi.fileFields(newText);
-		const t2 = Object.values(t);
-		const t3 = t2.map((field) => ({
-			name: field.name,
-			type: field.type,
-			options: field.options,
-		}));
-		const t4 = JSON.stringify(t3);
+		if (!mmapi) {
+			outputText = "Metadata Menu API not available.";
+			console.warn("Metadata Menu API not available during updateOutputText call.");
+			return;
+		}
+		try {
+			const tFile = plugin.app.vault.getAbstractFileByPath(newText);
+			if (!tFile) {
+				outputText = `File not found: ${newText}`;
+				console.warn(`File not found during updateOutputText: ${newText}`);
+				return;
+			}
+			const t = await mmapi.fileFields(newText); 
+			const t2 = Object.values(t);
+			const t3 = t2.map((field) => ({
+				name: field.name,
+				type: field.type,
+				options: field.options,
+			}));
+			const t4 = JSON.stringify(t3, null, 2); 
 
-		outputText = t4;
+			outputText = t4;
+		} catch (error) {
+			console.error("Error fetching file fields for:", newText, error);
+			outputText = "Error fetching file fields. See console for details.";
+		}
 	}
 
-	let selectedFile = '';
+	let selectedFile = formatTemplate.sourceNotePath || '';
+
 	function handleFileChange(filePath: string) {
 		selectedFile = filePath;
 		updateOutputText(selectedFile);
@@ -74,23 +92,39 @@
 
 		const index = formatTemplate.frontmatters.findIndex((f) => f.id === frontmatterId);
 		if (index === -1) return;
-		formatTemplate.frontmatters[index] = updatedFrontmatter;
+		// Ensure reactivity by creating a new array
+		const newFrontmatters = [...formatTemplate.frontmatters];
+		newFrontmatters[index] = updatedFrontmatter;
+		formatTemplate.frontmatters = newFrontmatters;
 		onSubmit(formatTemplate);
 	}
 
 	async function handleDelete(event: DeleteFrontmatter) {
 		const { frontmatterId } = event.detail;
 
-		const filteredFrontmatters = formatTemplate.frontmatters.filter((f) => f.id !== frontmatterId);
-		formatTemplate.frontmatters = [...filteredFrontmatters];
+		if (typeof frontmatterId !== 'number') {
+			console.error('Failed to get frontmatterId from delete event', event.detail);
+			return;
+		}
+
+		formatTemplate.frontmatters = formatTemplate.frontmatters.filter((f) => f.id !== frontmatterId);
+
 		onSubmit(formatTemplate);
 	}
 
 	async function addNewFrontmatter() {
-		const frontmatters = [...formatTemplate.frontmatters, addFrontmatterSetting()];
-
-		formatTemplate.frontmatters = [...frontmatters];
+		const newSetting = addFrontmatterSetting();
+		formatTemplate.frontmatters = [...formatTemplate.frontmatters, newSetting];
 		onSubmit(formatTemplate);
+	}
+
+	// Functions to control all FrontmatterCard components
+	function expandAllDetails() {
+		frontmatterCardRefs.forEach(card => card.setExpanded(true));
+	}
+
+	function collapseAllDetails() {
+		frontmatterCardRefs.forEach(card => card.setExpanded(false));
 	}
 </script>
 
@@ -118,11 +152,18 @@
 		</div>
 	{/if}
 
+	{#if formatTemplate.frontmatters.length > 0}
+	<div class="global-frontmatter-controls">
+		<button on:click={expandAllDetails} class="clickable-icon">Expand All</button>
+		<button on:click={collapseAllDetails} class="clickable-icon">Collapse All</button>
+	</div>
+	{/if}
+
 	<div class="frontmatter-list">
 		{#each formatTemplate.frontmatters as frontmatter (frontmatter.id)}
-			<FrontmatterCard
-				frontmatterSetting={frontmatter}
-				frontmatterId={frontmatter.id}
+			<ToggleWrapper
+				item={frontmatter}
+				frontmatterCardRefs={frontmatterCardRefs}
 				on:settingsChange={handleSettingsChange}
 				on:delete={handleDelete}
 			/>
@@ -158,5 +199,47 @@
 
 	.add-frontmatter-button:hover {
 		background-color: var(--interactive-accent-hover);
+	}
+
+	.global-frontmatter-controls {
+		display: flex;
+		gap: 8px;
+		margin-bottom: 12px;
+		margin-top: 8px;
+	}
+
+	.global-frontmatter-controls button {
+		padding: 6px 12px;
+		background-color: var(--interactive-normal);
+		color: var(--text-on-button);
+		border: 1px solid var(--background-modifier-border);
+		border-radius: var(--radius-m);
+		cursor: pointer;
+		font-size: var(--font-ui-small);
+	}
+
+	.global-frontmatter-controls button:hover {
+		background-color: var(--interactive-hover);
+	}
+
+	.output-textarea {
+		margin-top: 16px;
+		margin-bottom: 16px;
+	}
+	.output-textarea label {
+		display: block;
+		margin-bottom: 4px;
+		font-weight: 500;
+	}
+	.output-field {
+		width: 100%;
+		min-height: 100px;
+		padding: 8px;
+		border: 1px solid var(--background-modifier-border);
+		border-radius: 4px;
+		background-color: var(--background-secondary);
+		font-family: var(--font-monospace);
+		font-size: var(--font-ui-smaller);
+		resize: vertical;
 	}
 </style>
