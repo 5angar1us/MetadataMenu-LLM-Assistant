@@ -13,127 +13,131 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher, onMount, getContext, afterUpdate } from 'svelte';
+	import { createEventDispatcher, onMount } from 'svelte';
 	import { Setting, DropdownComponent, TextAreaComponent } from 'obsidian';
-	import type AutoClassifierPlugin from 'main';
-	import { AutoClassifierPluginKey } from 'settings/Swelte/context-keys';
+	import type { OptionsMode as OptionsModeType, OptionItem as OptionItemType, FailureActionType as FailureActionTypeType } from 'Providers/ProvidersSetup/shared/Types';
+    import { ToOptions as ToOptionsFunc } from 'Providers/ProvidersSetup/shared/Types';
 
-	export let optionsMode: OptionsMode;
-	export let options: OptionItem[] | undefined = [];
-	export let failureActionType: FailureActionType; // To conditionally hide based on failureAction
+
+	export let optionsMode: OptionsModeType;
+	export let options: OptionItemType[] | undefined = [];
+	export let failureActionType: FailureActionTypeType;
 
 	const dispatch = createEventDispatcher<DispatchEvents>();
-	const plugin = getContext<AutoClassifierPlugin>(AutoClassifierPluginKey);
 
 	let optionsModeContainerEl: HTMLElement;
 	let availableOptionsContainerEl: HTMLElement;
 	let optionsTextareaComponent: TextAreaComponent | null = null;
+	let optionsDescriptionEl: HTMLParagraphElement | null = null;
+	let modeDropdown: DropdownComponent | null = null;
 
-	let internalOptionsString: string = (options || []).join('\n');
+	let internalOptionsString: string = (options || []).join(', ');
 
-	// Sync internalOptionsString when options prop changes from parent
-	$: if (options && (options || []).join('\n') !== internalOptionsString) {
-		internalOptionsString = (options || []).join('\n');
-		if (optionsTextareaComponent) {
-			optionsTextareaComponent.setValue(internalOptionsString);
+	$: {
+		if (options) { 
+			const newOptionsStringRepresentation = (options || []).map(String).join(', ');
+			const currentInternalOptionsContent = internalOptionsString
+				.split(',')
+				.map(s => s.trim())
+				.filter(s => s !== '')
+				.join(', ');
+
+			if (newOptionsStringRepresentation !== currentInternalOptionsContent) {
+				internalOptionsString = newOptionsStringRepresentation;
+				if (optionsTextareaComponent && optionsTextareaComponent.getValue() !== internalOptionsString) {
+					optionsTextareaComponent.setValue(internalOptionsString);
+				}
+			}
 		}
 	}
 
 	$: isTextAreaDisabled = optionsMode === 'all';
-	$: showAvailableOptionsSection = failureActionType !== 'default-value';
 
-	function handleOptionsModeChange(newMode: OptionsMode) {
-		optionsMode = newMode;
+	function handleOptionsModeChange(newMode: OptionsModeType) {
 		dispatch('change', { optionsMode: newMode });
-		// Force re-render or update of dependent UI if necessary
-		renderAvailableOptions();
 	}
 
 	function handleOptionsTextAreaChange(newOptionsValue: string) {
-		internalOptionsString = newOptionsValue;
+		internalOptionsString = newOptionsValue; 
 		const newOptionsArray = newOptionsValue
 			.split(',')
 			.map((s) => s.trim())
 			.filter((s) => s !== '');
 
-		dispatch('change', { options: ToOptions(newOptionsArray) });
-		// Update count in description
-		if (availableOptionsContainerEl) {
-			const settingDescEl = availableOptionsContainerEl.querySelector('.setting-item-description');
-			if (settingDescEl) {
-				settingDescEl.textContent = getDescriptionText(newOptionsArray.length);
-			}
+		dispatch('change', { options: ToOptionsFunc(newOptionsArray) });
+
+		if (optionsDescriptionEl) {
+			optionsDescriptionEl.textContent = getDescriptionText(newOptionsArray.length);
 		}
 	}
 
 	function getDescriptionText(count: number): string {
-		let desc = `Enter one option per line. Count: ${count}. `;
+		let desc = `Enter options separated by commas. Count: ${count}. `;
 		if (optionsMode === 'whitelist') {
 			desc += 'Only these options will be sent to LLM.';
 		} else if (optionsMode === 'blacklist') {
 			desc += 'These options will be excluded from LLM context.';
 		} else {
-			desc += 'All options are available by default.';
+			desc += 'All options are available by default (textarea is disabled).';
 		}
 		return desc;
 	}
 
-	function renderAvailableOptions() {
-		if (!availableOptionsContainerEl) return;
-		availableOptionsContainerEl.empty(); // Clear previous content
-
-		if (showAvailableOptionsSection) {
-			const optionsSetting = new Setting(availableOptionsContainerEl)
-				.setName('Available Options')
-				.setDesc(getDescriptionText((options || []).length));
-
-			if (optionsMode === 'whitelist' || optionsMode === 'blacklist') {
-				optionsSetting.nameEl.append(' (Suggest: TODO)');
-			}
-
-			optionsTextareaComponent = new TextAreaComponent(optionsSetting.controlEl)
-				.setValue(internalOptionsString)
-				.setPlaceholder('option1\noption2\n...')
-				.setDisabled(isTextAreaDisabled)
-				.onChange(handleOptionsTextAreaChange);
-
-			optionsTextareaComponent.inputEl.style.width = '100%';
-			optionsTextareaComponent.inputEl.style.minHeight = '100px';
-		}
-	}
-
 	onMount(() => {
+		// Setup Dropdown for Options Mode
 		if (optionsModeContainerEl) {
+			optionsModeContainerEl.empty(); // Clear if anything was there before svelte hydration (e.g. SSR)
 			const modeSetting = new Setting(optionsModeContainerEl)
 				.setName('Available Options Mode')
 				.setDesc('Define how available options are used.');
 
-			new DropdownComponent(modeSetting.controlEl)
-				.addOption('all' as OptionsMode, 'All from options')
-				.addOption('whitelist' as OptionsMode, 'Whitelist from options')
-				.addOption('blacklist' as OptionsMode, 'Blacklist from options')
+			modeDropdown = new DropdownComponent(modeSetting.controlEl)
+				.addOption('all' as OptionsModeType, 'All from options')
+				.addOption('whitelist' as OptionsModeType, 'Whitelist from options')
+				.addOption('blacklist' as OptionsModeType, 'Blacklist from options')
 				.setValue(optionsMode)
-				.onChange((value: OptionsMode) => {
-					handleOptionsModeChange(value);
-				});
+				.onChange(handleOptionsModeChange);
 		}
-		renderAvailableOptions(); // Initial render for options textarea
+
+		// Setup Textarea for Available Options
+		if (availableOptionsContainerEl) {
+			availableOptionsContainerEl.empty(); // Clear if anything was there before svelte hydration
+			new Setting(availableOptionsContainerEl)
+				.setName('Available Options')
+				.setHeading();
+			
+			const descContainer = availableOptionsContainerEl.createDiv();
+			optionsDescriptionEl = descContainer.createEl('p', { cls: 'setting-item-description' });
+			optionsDescriptionEl.textContent = getDescriptionText((options || []).length);
+
+			optionsTextareaComponent = new TextAreaComponent(availableOptionsContainerEl)
+				.setValue(internalOptionsString) 
+				.setPlaceholder('option1, option2, ...')
+				.setDisabled(isTextAreaDisabled)
+				.onChange(handleOptionsTextAreaChange);
+			optionsTextareaComponent.inputEl.classList.add('nmDatawiewWhereExpession__input');
+		}
 	});
 
-	// React to changes in props that affect visibility or content of availableOptions
-	$: if (failureActionType && availableOptionsContainerEl) {
-		renderAvailableOptions();
+	$: if (modeDropdown) {
+		modeDropdown.setValue(optionsMode);
 	}
 
-	// React to changes in optionsMode for the textarea section
-	$: if (optionsMode && availableOptionsContainerEl && showAvailableOptionsSection) {
-		renderAvailableOptions();
+	$: if (optionsTextareaComponent) {
+		optionsTextareaComponent.setDisabled(isTextAreaDisabled);
 	}
+
+	$: if (optionsDescriptionEl) {
+		optionsDescriptionEl.textContent = getDescriptionText((options || []).length);
+	}
+
 </script>
 
-<div bind:this={optionsModeContainerEl} class="options-mode-container"></div>
+<div bind:this={optionsModeContainerEl} class="options-mode-container">
+	<!-- "Available Options Mode" Dropdown will be rendered by onMount -->
+</div>
 <div bind:this={availableOptionsContainerEl} class="available-options-container">
-	<!-- Available Options TextArea will be rendered here by renderAvailableOptions() -->
+	<!-- "Available Options" Title, Description, TextArea will be rendered by onMount -->
 </div>
 
 <style>
@@ -141,7 +145,17 @@
 	.available-options-container {
 		margin-bottom: 16px;
 	}
-	.available-options-container :global(.setting-item-description) {
-		white-space: pre-wrap; /* Ensures description wraps and respects newlines if any */
+
+	.available-options-container :global(textarea.nmDatawiewWhereExpession__input) {
+		width: 100%;
+		min-height: 80px; 
+		max-height: 300px;
+		overflow-y: auto;
+	}
+
+	.available-options-container :global(p.setting-item-description) {
+		font-size: var(--font-ui-smaller);
+		color: var(--text-muted);
+		margin-bottom: 8px;
 	}
 </style>
