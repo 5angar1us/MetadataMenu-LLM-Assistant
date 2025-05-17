@@ -49,9 +49,6 @@ export class AutoClassifierSettingTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 	
-		// Заголовок настроек
-		containerEl.createEl('h2', { text: 'Auto Classifier Settings' });
-		
 		// Монтирование всех компонентов
 		Object.entries(this.components).forEach(([key, component]) => {
 			component.container = containerEl.createDiv({ cls: `${key}-container` });
