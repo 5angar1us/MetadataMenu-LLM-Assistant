@@ -83,6 +83,31 @@
 						await plugin.saveSettings();
 					});
 			});
+
+		new Setting(settingEl)
+			.setName('Enable Auto Processing')
+			.setDesc('Enable automatic processing of files in the specified folder.')
+			.addToggle(toggle => {
+				toggle
+					.setValue(plugin.settings.autoProcessingEnabled)
+					.onChange(async (value) => {
+						plugin.settings.autoProcessingEnabled = value;
+						await plugin.saveSettings();
+					});
+			});
+
+		new Setting(settingEl)
+			.setName('Auto Processing Folder Path')
+			.setDesc('Specify the folder path for automatic processing. Files in this folder will be processed automatically.')
+			.addText(text =>
+				text
+					.setPlaceholder('Enter folder path for auto processing')
+					.setValue(plugin.settings.autoProcessingFolderPath)
+					.onChange(async (value) => {
+						plugin.settings.autoProcessingFolderPath = value;
+						await plugin.saveSettings();
+					})
+			);
 	}
 
 	onMount(() => {

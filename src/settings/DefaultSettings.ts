@@ -55,5 +55,7 @@ export const DEFAULT_SETTINGS: AutoClassifierSettings = {
 	defaultFolderPath: '',
 	metadataMenufileClassAlias: '',
 	showDebugOutput: false,
+	autoProcessingEnabled: false,
+	autoProcessingFolderPath: '',
 };
 

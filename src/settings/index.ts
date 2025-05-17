@@ -15,6 +15,8 @@ export interface AutoClassifierSettings {
 	defaultFolderPath:string;
 	metadataMenufileClassAlias:string;
 	showDebugOutput: boolean;
+	autoProcessingEnabled: boolean;
+	autoProcessingFolderPath: string;
 }
 
 
