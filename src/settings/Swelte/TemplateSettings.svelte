@@ -5,15 +5,33 @@
 	import type AutoClassifierPlugin from 'main';
 	import { AutoClassifierPluginKey } from './context-keys';
 
-	let settingEl: HTMLElement;
+	
 	export let plugin: AutoClassifierPlugin;
 	setContext(AutoClassifierPluginKey, plugin);
+	let settingElTop: HTMLElement;
+	let settingElBottom: HTMLElement;
 
-	function createTemplateSettings() {
-		if (!settingEl) return;
-		settingEl.empty();
+	function createTopSettings() {
+		if (!settingElTop) return;
+		settingElTop.empty();
+		new Setting(settingElTop)
+			.setName('FileClass alias for Metadata Menu')
+			.setDesc(
+				'This alias is used to define fileClass in the Metadata Menu plugin. ' +
+					'It is read from Metadata Menu settings when Auto Classifier plugin loads and used for integration. ' +
+					'This value cannot be changed here, it is for informational purposes only.'
+			)
+			.addText((text) =>
+				text
+					.setValue(
+						plugin.settings.metadataMenufileClassAlias ||
+							'Not defined or Metadata Menu is not active'
+					)
+					.setDisabled(true)
+			);
+		
 
-		new Setting(settingEl)
+		new Setting(settingElTop)
 			.setName('Global Relevance Threshold')
 			.setDesc(
 				'Default relevance threshold for new frontmatter templates (0.0 to 1.0). This value is used if a specific frontmatter does not have its own threshold set.'
@@ -40,7 +58,35 @@
 			' for at least one frontmatter in template.'
 		);
 
-		new Setting(settingEl)
+		
+
+		
+
+		new Setting(settingElTop)
+			.setName('Enable Auto Processing')
+			.setDesc('Enable automatic processing of files in the specified folder.')
+			.addToggle(toggle => {
+				toggle
+					.setValue(plugin.settings.autoProcessingEnabled)
+					.onChange(async (value) => {
+						plugin.settings.autoProcessingEnabled = value;
+						await plugin.saveSettings();
+					});
+			});
+
+		new Setting(settingElTop)
+			.setName('Auto Processing Folder Path')
+			.setDesc('Specify the folder path for automatic processing. Files in this folder will be processed automatically.')
+			.addText(text =>
+				text
+					.setPlaceholder('Enter folder path for auto processing')
+					.setValue(plugin.settings.autoProcessingFolderPath)
+					.onChange(async (value) => {
+						plugin.settings.autoProcessingFolderPath = value;
+						await plugin.saveSettings();
+					})
+			);
+		new Setting(settingElTop)
 			.setName('Folder Path for Irrelevant Files')
 			.setDesc(desc)
 			.addText(
@@ -55,24 +101,14 @@
 							await plugin.saveSettings();
 						})
 			);
-
-		new Setting(settingEl)
-			.setName('FileClass alias for Metadata Menu')
-			.setDesc(
-				'This alias is used to define fileClass in the Metadata Menu plugin. ' +
-					'It is read from Metadata Menu settings when Auto Classifier plugin loads and used for integration. ' +
-					'This value cannot be changed here, it is for informational purposes only.'
-			)
-			.addText((text) =>
-				text
-					.setValue(
-						plugin.settings.metadataMenufileClassAlias ||
-							'Not defined or Metadata Menu is not active'
-					)
-					.setDisabled(true)
-			);
-
-		new Setting(settingEl)
+		
+	}
+	function createBottomSettings() {
+		if (!settingElBottom) return;
+		settingElBottom.empty();
+		new Setting(settingElBottom)
+			.setHeading();
+		new Setting(settingElBottom)
 			.setName('Enable Debug Mode')
 			.setDesc('Show additional debug information')
 			.addToggle(toggle => {
@@ -83,40 +119,16 @@
 						await plugin.saveSettings();
 					});
 			});
-
-		new Setting(settingEl)
-			.setName('Enable Auto Processing')
-			.setDesc('Enable automatic processing of files in the specified folder.')
-			.addToggle(toggle => {
-				toggle
-					.setValue(plugin.settings.autoProcessingEnabled)
-					.onChange(async (value) => {
-						plugin.settings.autoProcessingEnabled = value;
-						await plugin.saveSettings();
-					});
-			});
-
-		new Setting(settingEl)
-			.setName('Auto Processing Folder Path')
-			.setDesc('Specify the folder path for automatic processing. Files in this folder will be processed automatically.')
-			.addText(text =>
-				text
-					.setPlaceholder('Enter folder path for auto processing')
-					.setValue(plugin.settings.autoProcessingFolderPath)
-					.onChange(async (value) => {
-						plugin.settings.autoProcessingFolderPath = value;
-						await plugin.saveSettings();
-					})
-			);
 	}
 
 	onMount(() => {
-		createTemplateSettings();
+		createTopSettings();
+		createBottomSettings();
 	});
 </script>
 
-<div bind:this={settingEl}></div>
+<div bind:this={settingElTop}></div>
 <TemplateList></TemplateList>
-
+<div bind:this={settingElBottom}></div>
 <style>
 </style>
