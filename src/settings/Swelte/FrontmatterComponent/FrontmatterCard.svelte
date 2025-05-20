@@ -122,9 +122,7 @@
 			/>
 			
 			<AvailableOptions
-				optionsMode={frontmatterSetting.optionsMode}
-				options={frontmatterSetting.options}
-				failureActionType={frontmatterSetting.failureAction.type}
+				frontmatterSetting={frontmatterSetting}
 				on:change={(e) => handleSettingsChange(e.detail)}
 			/>
 		</div>

@@ -1,10 +1,10 @@
 <script lang="ts" context="module">
-		import {
+	import {
 		type TemplateProperty,
 		type OptionsMode,
-		type FailureActionType,
-		type OptionItem,
-		ToOptions
+		// type FailureActionType, // Not directly used in script module
+		// type OptionItem, // Not directly used in script module
+		// ToOptions // Not directly used in script module
 	} from "settings";
 
 	type DispatchEvents = {
@@ -13,126 +13,241 @@
 </script>
 
 <script lang="ts">
-	import { createEventDispatcher, onMount } from 'svelte';
-	import { Setting, DropdownComponent, TextAreaComponent } from 'obsidian';
+	import { createEventDispatcher, onMount, getContext, onDestroy } from 'svelte';
+	import { Setting, DropdownComponent, TextAreaComponent, App, TextComponent, ButtonComponent } from 'obsidian';
 	
-	import type { OptionsMode as OptionsModeType, OptionItem as OptionItemType, FailureActionType as FailureActionTypeType } from "settings";
-    
+	import type { OptionsMode as OptionsModeType, FailureActionDefaultValue } from "settings";
 	import { ToOptions as ToOptionsFunc } from "settings";
+	import { PropertyValueMultiSuggest } from 'settings/Suggest/PropertyValueMultiSuggest';
+	import { globasourceFileFieldInfo, AutoClassifierPluginKey } from 'settings/Swelte/context-keys';
+	import type AutoClassifierPlugin from 'main';
+	import type { ValidatedFieldInfo } from 'types/metadataMenuSchemas';
+	import { getAllTags } from "settings/Suggest/getAllTags";
 
 
-	export let optionsMode: OptionsModeType;
-	export let options: OptionItemType[] | undefined = [];
-	export let failureActionType: FailureActionTypeType;
+	export let frontmatterSetting: TemplateProperty;
 
 	const dispatch = createEventDispatcher<DispatchEvents>();
+    
+    const plugin: AutoClassifierPlugin = getContext(AutoClassifierPluginKey);
+    const app: App = plugin.app;
 
-	let optionsModeContainerEl: HTMLElement;
-	let availableOptionsContainerEl: HTMLElement;
-	let optionsTextareaComponent: TextAreaComponent | null = null;
-	let optionsDescriptionEl: HTMLParagraphElement | null = null;
-	let modeDropdown: DropdownComponent | null = null;
+    let optionsModeContainerEl: HTMLElement;
+    let availableOptionsContainerEl: HTMLElement;
+    let optionsTextareaComponent: TextAreaComponent | null = null;
+    let optionsDescriptionEl: HTMLParagraphElement | null = null;
+    let modeDropdown: DropdownComponent | null = null;
+    // let name = frontmatterSetting.key; // This variable was unused
+    let textInputComponent: TextComponent | null = null;
+    let addOptionsButton: ButtonComponent | null = null;
 
-	let internalOptionsString: string = (options || []).join(', ');
+    let propertyValueSuggest: PropertyValueMultiSuggest | null = null;
+    let currentFieldInfos: ValidatedFieldInfo[] = [];
+    let unsubscribeGlobasourceFileFieldInfo: (() => void) | null = null;
+    
 
-	$: {
-		if (options) { 
-			const newOptionsStringRepresentation = (options || []).map(String).join(', ');
-			const currentInternalOptionsContent = internalOptionsString
-				.split(',')
-				.map(s => s.trim())
-				.filter(s => s !== '')
-				.join(', ');
+    let internalOptionsString: string = (frontmatterSetting.options || []).join(', ');
+    
 
-			if (newOptionsStringRepresentation !== currentInternalOptionsContent) {
-				internalOptionsString = newOptionsStringRepresentation;
-				if (optionsTextareaComponent && optionsTextareaComponent.getValue() !== internalOptionsString) {
-					optionsTextareaComponent.setValue(internalOptionsString);
-				}
-			}
-		}
-	}
+    $: {
+        const newOptionsStringRepresentation = (frontmatterSetting.options || []).map(String).join(', ');
+        const currentInternalOptionsContent = internalOptionsString
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s !== '')
+            .join(', ');
+        
+        if (newOptionsStringRepresentation !== currentInternalOptionsContent) {
+            internalOptionsString = newOptionsStringRepresentation;
+            if (optionsTextareaComponent && optionsTextareaComponent.getValue() !== internalOptionsString) {
+                optionsTextareaComponent.setValue(internalOptionsString);
+            }
+        }
+    }
+    
+    $: isTextAreaDisabled = frontmatterSetting.optionsMode === 'all';
+    
+    function handleOptionsModeChange(newMode: OptionsModeType) {
 
-	$: isTextAreaDisabled = optionsMode === 'all';
+        frontmatterSetting.optionsMode = newMode;
+        dispatch('change', { optionsMode: newMode });
+    }
+    
+    function handleOptionsTextAreaChange(newOptionsValue: string) {
+        internalOptionsString = newOptionsValue; 
+        const newOptionsArray = newOptionsValue
+            .split(',')
+            .map((s) => s.trim())
+            .filter((s) => s !== '');
+        
 
-	function handleOptionsModeChange(newMode: OptionsModeType) {
-		dispatch('change', { optionsMode: newMode });
-	}
+        frontmatterSetting.options = ToOptionsFunc(newOptionsArray);
+        dispatch('change', { options: frontmatterSetting.options });
+        
+        if (optionsDescriptionEl) {
+            optionsDescriptionEl.textContent = getDescriptionText(newOptionsArray.length);
+        }
+    }
+    
+    function getDescriptionText(count: number): string {
+        let desc = `Enter options separated by commas. Count: ${count}. `;
+        if (frontmatterSetting.optionsMode === 'whitelist') {
+            desc += 'Only these options will be sent to LLM.';
+        } else if (frontmatterSetting.optionsMode === 'blacklist') {
+            desc += 'These options will be excluded from LLM context.';
+        } else {
+            desc += 'All options are available by default (textarea is disabled).';
+        }
+        return desc;
+    }
 
-	function handleOptionsTextAreaChange(newOptionsValue: string) {
-		internalOptionsString = newOptionsValue; 
-		const newOptionsArray = newOptionsValue
-			.split(',')
-			.map((s) => s.trim())
-			.filter((s) => s !== '');
+    function updateSuggesterSettings() {
+        if (!propertyValueSuggest) return;
 
-		dispatch('change', { options: ToOptionsFunc(newOptionsArray) });
+        propertyValueSuggest.setValues(currentFieldInfos); // Pass all available field infos
+        propertyValueSuggest.setProperty(frontmatterSetting.key); // Set the current property key
 
-		if (optionsDescriptionEl) {
-			optionsDescriptionEl.textContent = getDescriptionText(newOptionsArray.length);
-		}
-	}
+        let valueToExclude: string | undefined = undefined;
+        if (frontmatterSetting.failureAction?.type === 'default-value') {
+            valueToExclude = (frontmatterSetting.failureAction as FailureActionDefaultValue).value;
+        }
+        propertyValueSuggest.setExcludedValue(valueToExclude);
+    }
 
-	function getDescriptionText(count: number): string {
-		let desc = `Enter options separated by commas. Count: ${count}. `;
-		if (optionsMode === 'whitelist') {
-			desc += 'Only these options will be sent to LLM.';
-		} else if (optionsMode === 'blacklist') {
-			desc += 'These options will be excluded from LLM context.';
-		} else {
-			desc += 'All options are available by default (textarea is disabled).';
-		}
-		return desc;
-	}
+    function handleAddOptionsClick() {
+        if (!textInputComponent || !frontmatterSetting) return;
 
-	onMount(() => {
-		// Setup Dropdown for Options Mode
-		if (optionsModeContainerEl) {
-			optionsModeContainerEl.empty(); // Clear if anything was there before svelte hydration (e.g. SSR)
-			const modeSetting = new Setting(optionsModeContainerEl)
-				.setName('Available Options Mode')
-				.setDesc('Define how available options are used.');
+        const newValuesString = textInputComponent.getValue();
+        if (!newValuesString.trim()) {
+            textInputComponent.setValue(''); // Clear if only whitespace
+            return; 
+        }
 
-			modeDropdown = new DropdownComponent(modeSetting.controlEl)
-				.addOption('all' as OptionsModeType, 'All from options')
-				.addOption('whitelist' as OptionsModeType, 'Whitelist from options')
-				.addOption('blacklist' as OptionsModeType, 'Blacklist from options')
-				.setValue(optionsMode)
-				.onChange(handleOptionsModeChange);
-		}
+        const newValuesArray = newValuesString
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s !== '');
 
-		// Setup Textarea for Available Options
-		if (availableOptionsContainerEl) {
-			availableOptionsContainerEl.empty(); // Clear if anything was there before svelte hydration
-			new Setting(availableOptionsContainerEl)
-				.setName('Available Options')
-				.setHeading();
-			
-			const descContainer = availableOptionsContainerEl.createDiv();
-			optionsDescriptionEl = descContainer.createEl('p', { cls: 'setting-item-description' });
-			optionsDescriptionEl.textContent = getDescriptionText((options || []).length);
+        if (newValuesArray.length === 0) {
+            textInputComponent.setValue(''); // Clear if effectively empty after processing
+            return;
+        }
 
-			optionsTextareaComponent = new TextAreaComponent(availableOptionsContainerEl)
-				.setValue(internalOptionsString) 
-				.setPlaceholder('option1, option2, ...')
-				.setDisabled(isTextAreaDisabled)
-				.onChange(handleOptionsTextAreaChange);
-			optionsTextareaComponent.inputEl.classList.add('nmDatawiewWhereExpession__input');
-		}
-	});
+        const currentOptionsAsStrings: string[] = (frontmatterSetting.options || []).map(String);
+        const combinedOptionsAsStrings = Array.from(new Set([...currentOptionsAsStrings, ...newValuesArray]));
+        
+        frontmatterSetting.options = ToOptionsFunc(combinedOptionsAsStrings);
+        dispatch('change', { options: frontmatterSetting.options });
+        
+        textInputComponent.setValue(''); // Clear the input field
+    }
 
-	$: if (modeDropdown) {
-		modeDropdown.setValue(optionsMode);
-	}
+    function handleClearInputClick() {
+        if (textInputComponent) {
+            textInputComponent.setValue('');
+        }
+    }
+    
+    onMount(() => {
+        // Setup Dropdown for Options Mode
+        if (optionsModeContainerEl) {
+            optionsModeContainerEl.empty();
+            const modeSetting = new Setting(optionsModeContainerEl)
+                .setName('Available Options Mode')
+                .setDesc('Define how available options are used.');
+            
+            modeDropdown = new DropdownComponent(modeSetting.controlEl)
+                .addOption('all' as OptionsModeType, 'All from options')
+                .addOption('whitelist' as OptionsModeType, 'Whitelist from options')
+                .addOption('blacklist' as OptionsModeType, 'Blacklist from options')
+                .setValue(frontmatterSetting.optionsMode)
+                .onChange(handleOptionsModeChange);
+        }
+        
+        // Setup Textarea for Available Options
+        if (availableOptionsContainerEl) {
+            availableOptionsContainerEl.empty();
+            new Setting(availableOptionsContainerEl)
+                .setName('Available Options')
+                .setHeading();
+            
+            const descContainer = availableOptionsContainerEl.createDiv();
+            optionsDescriptionEl = descContainer.createEl('p', { cls: 'setting-item-description' });
+            optionsDescriptionEl.textContent = getDescriptionText((frontmatterSetting.options || []).length);
+            
+			const s = new Setting(availableOptionsContainerEl);
+            s.setDesc("Search elemnt input")
+            textInputComponent = new TextComponent(s.controlEl);
+			textInputComponent.setPlaceholder('Add options, comma-separated');
+            textInputComponent.setDisabled(isTextAreaDisabled);
+            
+            addOptionsButton = new ButtonComponent(s.controlEl)
+                .setButtonText("Add to Options")
+                .setDisabled(isTextAreaDisabled)
+                .onClick(handleAddOptionsClick);
+            
+               
+            s.addButton(button => button
+                .setButtonText("Clear Input")
+                .onClick(handleClearInputClick));
 
-	$: if (optionsTextareaComponent) {
-		optionsTextareaComponent.setDisabled(isTextAreaDisabled);
-	}
+            optionsTextareaComponent = new TextAreaComponent(availableOptionsContainerEl)
+                .setValue(internalOptionsString)
+                .setPlaceholder('option1, option2, )')
+                .setDisabled(isTextAreaDisabled)
+                .onChange(handleOptionsTextAreaChange);
+            optionsTextareaComponent.inputEl.classList.add('nmDatawiewWhereExpession__input');
 
-	$: if (optionsDescriptionEl) {
-		optionsDescriptionEl.textContent = getDescriptionText((options || []).length);
-	}
+            // Initialize PropertyValueMultiSuggest
+            propertyValueSuggest = new PropertyValueMultiSuggest(
+				textInputComponent.inputEl, // Используем textInputComponent
+                app,
+                frontmatterSetting.key
+            );
 
+            propertyValueSuggest.setTags(getAllTags(plugin.app))
+
+            unsubscribeGlobasourceFileFieldInfo = globasourceFileFieldInfo.subscribe(infos => {
+                currentFieldInfos = infos || [];
+                updateSuggesterSettings();
+            });
+            
+            // Initial update for the suggester
+            updateSuggesterSettings();
+        }
+    });
+
+    onDestroy(() => {
+        if (unsubscribeGlobasourceFileFieldInfo) {
+            unsubscribeGlobasourceFileFieldInfo();
+        }
+        // PropertyValueMultiSuggest cleans itself up when the input element is removed from the DOM,
+        // or doesn't require explicit destruction beyond what Obsidian handles for AbstractInputSuggest.
+    });
+    
+
+    $: if (modeDropdown && frontmatterSetting) {
+        modeDropdown.setValue(frontmatterSetting.optionsMode);
+    }
+    
+    $: if (optionsTextareaComponent && frontmatterSetting) {
+        optionsTextareaComponent.setDisabled(frontmatterSetting.optionsMode === 'all');
+    }
+    
+    $: if (optionsDescriptionEl && frontmatterSetting) {
+        optionsDescriptionEl.textContent = getDescriptionText((frontmatterSetting.options || []).length);
+    }
+
+    // Reactive updates for suggester when relevant frontmatterSetting properties change
+    $: frontmatterSetting.key, frontmatterSetting.failureAction, updateSuggesterSettings();
+
+    $: if (textInputComponent) {
+        textInputComponent.setDisabled(isTextAreaDisabled);
+    }
+
+    $: if (addOptionsButton) {
+        addOptionsButton.setDisabled(isTextAreaDisabled);
+    }
 </script>
 
 <div bind:this={optionsModeContainerEl} class="options-mode-container">

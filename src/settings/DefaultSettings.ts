@@ -54,7 +54,6 @@ export const DEFAULT_SETTINGS: AutoClassifierSettings = {
 	relevanceThreshold: 0.75, // Global default relevance threshold
 	defaultFolderPath: '',
 	metadataMenufileClassAlias: '',
-	showDebugOutput: false,
 	autoProcessingEnabled: false,
 	autoProcessingFolderPath: '',
 	isDebug: false,
