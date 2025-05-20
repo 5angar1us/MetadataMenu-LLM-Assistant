@@ -7,10 +7,15 @@
 	import type AutoClassifierPlugin from 'main';
 	import { addFrontmatterSetting } from 'frontmatter';
 	import { GetMetadataMenuApi } from 'PluginAvailability';
-	import { AutoClassifierPluginKey } from '../context-keys';
+	import { AutoClassifierPluginKey, globasourceFileFieldInfo, MetadataPropertyKeys } from '../context-keys';
 	import ToggleWrapper from './ToggleWrapper.svelte';
-	import { ValidatedFieldInfoSchema, type ValidatedFieldInfo } from '../../../types/metadataMenuSchemas';
+	import {
+		ValidatedFieldInfoSchema,
+		type ValidatedFieldInfo,
+	} from '../../../types/metadataMenuSchemas';
 	import type { SettingsChangeEvent, DeleteFrontmatter } from './FrontmatterCard.svelte';
+	import { getOptionsString as getOptions, isSupportedFiled} from 'types/metadataMenusGetOptions';
+	import { writable } from 'svelte/store';
 
 	export let plugin: AutoClassifierPlugin;
 	export let onUpdate: (format: FormatTemplate) => void; 
@@ -19,12 +24,14 @@
 	let formatTemplate = initialFormatTemplate;
 
 	let outputText = '';
+	let outputText2 = '';
 	let templateNameContainer: HTMLElement;
 
 	// Map to store references to FrontmatterCard components
 	let frontmatterCardRefs = new Map<number, { setExpanded: (value: boolean) => void }>();
 
 	let sourceFileFieldInfo: Array<ValidatedFieldInfo> = [];
+	
 
 	setContext(AutoClassifierPluginKey, plugin);
 
@@ -46,7 +53,7 @@
 		if (formatTemplate.sourceNotePath) {
 			updateSourceData(formatTemplate.sourceNotePath);
 		} else {
-			showInOutputTextIfDebug('No source file initially selected.')
+			showInOutputTextIfDebug('No source file initially selected.');
 		}
 	});
 
@@ -57,7 +64,7 @@
 
 		if (!mmapi) {
 			currentOutputText = 'Metadata Menu API not available.';
-			if (plugin.settings.showDebugOutput) console.warn(currentOutputText);
+			if (plugin.settings.isDebug) console.warn(currentOutputText);
 
 			showInOutputTextIfDebug(currentOutputText);
 		}
@@ -70,7 +77,7 @@
 
 		if (!tFile) {
 			currentOutputText = `File not found: ${filePath}`;
-			if (plugin.settings.showDebugOutput) console.warn(currentOutputText);
+			if (plugin.settings.isDebug) console.warn(currentOutputText);
 			showInOutputTextIfDebug(currentOutputText);
 		}
 
@@ -80,22 +87,24 @@
 			const fieldsForDebug: any[] = [];
 
 			for (const field of Object.values(rawFields)) {
-				const fieldDataToParse = {
-					name: field.name,
-					type: field.type, // This should align with FieldTypeSchema in metadataMenuSchemas.ts
-					options: field.options || {}, // Ensure options is an object
-				};
-				fieldsForDebug.push(fieldDataToParse);
+				if (isSupportedFiled(field)) {
+					const fieldDataToParse = {
+						name: field.name,
+						type: field.type, // This should align with FieldTypeSchema in metadataMenuSchemas.ts
+						options: field.options || {}, // Ensure options is an object
+					};
+					fieldsForDebug.push(fieldDataToParse);
 
-				const parseResult = ValidatedFieldInfoSchema.safeParse(fieldDataToParse);
-				if (parseResult.success) {
-					validatedFields.push(parseResult.data);
-				} else {
-					if (plugin.settings.showDebugOutput) {
-						console.warn(
-							`Validation failed for field '${field.name}' (type: ${field.type}):`,
-							parseResult.error.flatten()
-						);
+					const parseResult = ValidatedFieldInfoSchema.safeParse(fieldDataToParse);
+					if (parseResult.success) {
+						validatedFields.push(parseResult.data);
+					} else {
+						if (plugin.settings.isDebug) {
+							console.warn(
+								`Validation failed for field '${field.name}' (type: ${field.type}):`,
+								parseResult.error.flatten()
+							);
+						}
 					}
 				}
 			}
@@ -103,16 +112,17 @@
 			currentOutputText = JSON.stringify(fieldsForDebug, null, 2);
 		} catch (error) {
 			currentOutputText = 'Error fetching or parsing file fields. See console for details.';
-			if (plugin.settings.showDebugOutput)
-				console.error(`Error processing file '${filePath}':`, error);
+			if (plugin.settings.isDebug) console.error(`Error processing file '${filePath}':`, error);
 		}
 
 		sourceFileFieldInfo = newSourceInfo;
-		showInOutputTextIfDebug(currentOutputText)
+		globasourceFileFieldInfo.set(sourceFileFieldInfo);
+		showInOutputTextIfDebug(currentOutputText);
+		ShowParseOptions();
 	}
 
 	function showInOutputTextIfDebug(currentOutputText: string) {
-		if (plugin.settings.showDebugOutput) {
+		if (plugin.settings.isDebug) {
 			outputText = currentOutputText;
 		} else {
 			outputText = '';
@@ -122,7 +132,34 @@
 	// Reactive selectedFile derived from formatTemplate
 	$: selectedFile = formatTemplate.sourceNotePath || '';
 
-	// Reactive statement to handle toggling of showDebugOutput for outputText
+
+	async function ShowParseOptions() {
+		const fieldsForDebug: any[] = [];
+		for (const field of sourceFileFieldInfo) {
+			if(isSupportedFiled(field))
+			 {
+				const options = await getOptions(field);
+				const fieldDataToParse = {
+					name: field.name,
+					type: field.type, // This should align with FieldTypeSchema in metadataMenuSchemas.ts
+					options: options || {}, // Ensure options is an object
+				};
+				fieldsForDebug.push(fieldDataToParse);
+			}
+		}
+		const text = JSON.stringify(fieldsForDebug, null, 2);
+		showInOutputText2IfDebug(text);
+	}
+
+	function showInOutputText2IfDebug(currentOutputText: string) {
+		if (plugin.settings.isDebug) {
+			outputText2 = currentOutputText;
+		} else {
+			outputText2 = '';
+		}
+	}
+
+	// Reactive statement to handle toggling of showDebugOutput
 	$: if (plugin?.settings) {
 		updateSourceData(selectedFile); 
 	}
@@ -185,8 +222,9 @@
 		app={plugin.app}
 		onChange={handleFileChange}
 	/>
-	
-	{#if plugin.settings.showDebugOutput}
+
+
+	{#if plugin.settings.isDebug}
 		{#if outputText}
 			<div class="output-textarea">
 				<label>
@@ -194,6 +232,19 @@
 					<textarea
 						readonly
 						bind:value={outputText}
+						placeholder="Output will appear here..."
+						class="output-field"
+					/>
+				</label>
+			</div>
+		{/if}
+		{#if outputText2}
+			<div class="output-textarea">
+				<label>
+					Parse options Information
+					<textarea
+						readonly
+						bind:value={outputText2}
 						placeholder="Output will appear here..."
 						class="output-field"
 					/>

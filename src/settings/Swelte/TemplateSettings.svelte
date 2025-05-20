@@ -113,9 +113,9 @@
 			.setDesc('Show additional debug information')
 			.addToggle(toggle => {
 				toggle
-					.setValue(plugin.settings.showDebugOutput)
+					.setValue(plugin.settings.isDebug)
 					.onChange(async (value) => {
-						plugin.settings.showDebugOutput = value;
+						plugin.settings.isDebug = value;
 						await plugin.saveSettings();
 					});
 			});

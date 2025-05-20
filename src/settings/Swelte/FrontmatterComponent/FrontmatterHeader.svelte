@@ -8,26 +8,55 @@
 </script>
 
 <script lang="ts">
-	import { debounce } from 'obsidian';
-	import { createEventDispatcher } from 'svelte';
+	import { onMount, onDestroy, createEventDispatcher, getContext } from 'svelte';
+	import { debounce, type App } from 'obsidian';
+	import { PropertyKeySuggest } from 'settings/Suggest/PropertyKeySuggest';
+	import { AutoClassifierPluginKey, globasourceFileFieldInfo } from '../context-keys';
+	import type AutoClassifierPlugin from 'main';
+	import { getAllFrontmattersName } from 'settings/Suggest/getAllFrontmatters';
 
 	export let key: string = '';
+	let inputEl: HTMLInputElement;
+	let suggestInstance: PropertyKeySuggest;
+	const plugin = getContext<AutoClassifierPlugin>(AutoClassifierPluginKey);
 
+	// Обработчик изменений
 	const dispatch = createEventDispatcher<DispatchChangeName>();
-
-	function handleInput(e: Event) {
+	const debouncedHandleInput = debounce((e: Event) => {
 		const target = e.target as HTMLInputElement;
 		key = target.value;
 		dispatch('change', { newName: key });
-	}
+	}, 300);
 
-	const debouncedHandleInput = debounce(handleInput, 300);
+	// Инициализация саджеста
+	onMount(() => {
+		suggestInstance = new PropertyKeySuggest(inputEl, plugin.app);
+
+		// Подписка на обновления хранилища
+		const unsubscribe = globasourceFileFieldInfo.subscribe((fields) => {
+			if (fields) {
+				
+				const values = getAllFrontmattersName(fields);;
+				suggestInstance.setValues(values);
+			}
+		});
+
+		// Очистка
+		return () => {
+			unsubscribe();
+			suggestInstance?.close();
+			(suggestInstance as any)?.inputEl?.removeEventListener('input');
+		};
+	});
+
+
 </script>
 
 <div class="frontmatter-header-container">
 	<label class="frontmatter-label">Frontmatter Key</label>
 	<div class="input-container">
 		<input
+			bind:this={inputEl}
 			type="text"
 			class="frontmatter-name-input"
 			placeholder="tags"

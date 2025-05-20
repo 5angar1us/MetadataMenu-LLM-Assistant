@@ -57,5 +57,6 @@ export const DEFAULT_SETTINGS: AutoClassifierSettings = {
 	showDebugOutput: false,
 	autoProcessingEnabled: false,
 	autoProcessingFolderPath: '',
+	isDebug: false,
 };
 

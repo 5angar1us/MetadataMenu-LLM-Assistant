@@ -23,7 +23,11 @@
 		FailureActionMoveToFolder
 	} from "settings";
 	import type AutoClassifierPlugin from 'main';
-	import { AutoClassifierPluginKey } from 'settings/Swelte/context-keys';
+	import { AutoClassifierPluginKey, globasourceFileFieldInfo } from 'settings/Swelte/context-keys'; // Добавьте globasourceFileFieldInfo
+	import { PropertyKeySuggest } from 'settings/Suggest/PropertyKeySuggest';
+	import { PropertyValueSuggest } from 'settings/Suggest/PropertyValueSuggest';
+	import { checkAvailabilityDataview } from 'PluginAvailability';
+	import { getAPI, DataviewApi } from 'obsidian-dataview';
 
 	export let relevance: number | undefined;
 	export let failureAction: FailureAction;
@@ -31,6 +35,10 @@
 
 	const dispatch = createEventDispatcher<DispatchEvents>();
 	const plugin = getContext<AutoClassifierPlugin>(AutoClassifierPluginKey);
+
+	let propertyKeys: string[] = [];
+	let propertyKeySuggestInstance: PropertyKeySuggest | null = null;
+	let propertyValueSuggestInstance: PropertyValueSuggest | null = null;
 
 	let relevanceSliderEl: HTMLElement;
 	let failureActionContainerEl: HTMLElement;
@@ -40,6 +48,21 @@
 
 	// Initialize currentFailureAction from prop
 	let currentFailureAction: FailureAction = { ...failureAction };
+
+	const unsubscribeGlobasourceFileFieldInfo = globasourceFileFieldInfo.subscribe((value) => {
+		if (value) {
+			propertyKeys = value.map((fieldInfo) => fieldInfo.name);
+		} else {
+			propertyKeys = [];
+		}
+		if (propertyKeySuggestInstance) {
+			propertyKeySuggestInstance.setValues(propertyKeys);
+		}
+		if (propertyValueSuggestInstance && currentFailureAction.type === 'set-other-property') {
+			// Update PropertyValueSuggest with the new field info
+			propertyValueSuggestInstance.setValues(value || []);
+		}
+	});
 
 	function handleRelevanceChange(value: number) {
 		dispatch('change', { relevance: value });
@@ -81,6 +104,8 @@
 	function renderFailureActionInputs() {
 		if (!failureActionInputsContainerEl) return;
 		failureActionInputsContainerEl.empty(); // Clear previous inputs
+		propertyKeySuggestInstance = null; // Reset instance when inputs are cleared
+		propertyValueSuggestInstance = null; // Reset instance for value suggest
 
 		const action = currentFailureAction;
 
@@ -99,26 +124,45 @@
 		} else if (action.type === 'set-other-property') {
 			new Setting(failureActionInputsContainerEl)
 				.setName('Target Property Key')
-				.setDesc('Key of the property to set. (Placeholder for property key suggest)')
-				.addText((text) =>
+				.setDesc('Key of the property to set.')
+				.addText((text) => {
 					text
 						.setPlaceholder('Enter property key')
 						.setValue(action.targetKey)
 						.onChange((value) => {
-							updateCurrentFailureAction({ ...action, targetKey: value });
-						})
-				);
+							const newActionState = { ...action, targetKey: value };
+							updateCurrentFailureAction(newActionState);
+							if (propertyValueSuggestInstance) {
+								propertyValueSuggestInstance.setProperty(value);
+							}
+						});
+
+					propertyKeySuggestInstance = new PropertyKeySuggest(text.inputEl, plugin.app);
+					propertyKeySuggestInstance.setValues(propertyKeys);
+				});
 			new Setting(failureActionInputsContainerEl)
 				.setName('Target Property Value')
 				.setDesc('Value for the target property. (Placeholder for property value suggest)')
-				.addText((text) =>
-					text
-						.setPlaceholder('Enter property value')
+				.addText((text) => {
+					text.setPlaceholder('Enter property value')
 						.setValue(action.targetValue)
 						.onChange((value) => {
 							updateCurrentFailureAction({ ...action, targetValue: value });
-						})
-				);
+						});
+
+					if (checkAvailabilityDataview(plugin.app)) {
+
+						propertyValueSuggestInstance = new PropertyValueSuggest(
+							text.inputEl,
+							plugin.app,
+							action.targetKey
+						);
+						if ($globasourceFileFieldInfo) {
+							propertyValueSuggestInstance.setValues($globasourceFileFieldInfo);
+						}
+					} else {
+					}
+				});
 		}
 	}
 
@@ -130,7 +174,7 @@
 		}
 		currentFailureAction = { ...failureAction };
 
-		if (relevanceSliderEl && plugin) {
+		if (relevanceSliderEl) {
 			const sliderSetting = new Setting(relevanceSliderEl)
 				.setName('Relevance Threshold')
 				.setDesc(
@@ -169,6 +213,10 @@
 			failureActionInputsContainerEl = failureActionContainerEl.createDiv('failure-action-inputs');
 			renderFailureActionInputs();
 		}
+
+		return () => {
+			unsubscribeGlobasourceFileFieldInfo();
+		};
 	});
 
 	

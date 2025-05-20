@@ -6,7 +6,9 @@ export class FileSuggest extends AbstractInputSuggest<string> {
     constructor(private inputEl: HTMLInputElement, app: App) {
         super(app, inputEl);
         
-        this.Files = this.app.vault.getFiles().map(file => file.path);
+        this.Files = this.app.vault.getFiles()
+            .filter(file=> file.extension.contains("md"))
+            .map(file => file.path);
         
     }
 

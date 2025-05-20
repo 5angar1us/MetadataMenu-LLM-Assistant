@@ -6,7 +6,10 @@ import { initPluginContext } from "obsidian-dev-utils/obsidian/Plugin/PluginCont
 import { checkAvailabilityDataview, checkAvailabilityMetadataMenu, checkPluginAvailability, GetMetadataMenuApi, GetMetadataMenufileClassAlias as ExtractMetadataMenufileClassAlias } from "PluginAvailability";
 import { type AutoClassifierSettings, AutoClassifierSettingTab, SelectFrontmatterModal } from "settings";
 import { DEFAULT_SETTINGS } from "settings/DefaultSettings";
+import { convertDvjsToDvQuery } from "utils/DataviewQueryConverter";
+import { testQuery } from "utils/DataviewQuryConverterTests";
 import { mergeDefaults } from "utils/merge-settings";
+import { setPluginInstance } from "utils/pluginInstance";
 
 
 export default class AutoClassifierPlugin extends Plugin {
@@ -15,6 +18,7 @@ export default class AutoClassifierPlugin extends Plugin {
 	async onload() {
 		initPluginContext(this.app, this.manifest.id);
 		await this.loadSettings();
+		setPluginInstance(this);
 
 		this.app.workspace.onLayoutReady(() => {
 			const dataviewAvailable = checkAvailabilityDataview(this.app);
@@ -29,7 +33,13 @@ export default class AutoClassifierPlugin extends Plugin {
 		const mmapi = GetMetadataMenuApi(this.app);
 
 		this.addSettingTab(new AutoClassifierSettingTab(this));
+		
+		if(this.settings.isDebug){
+			testQuery()
+		}
 	}
+
+
 
 	setupCommand() {
 		// 단일 프론트매터 처리 명령
