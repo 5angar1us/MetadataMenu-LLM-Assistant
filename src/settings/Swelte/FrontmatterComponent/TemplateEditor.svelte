@@ -2,7 +2,8 @@
 	import { onMount, setContext } from 'svelte';
 	import FileInput from './FileInput.svelte';
 	import { Setting, TextComponent } from 'obsidian';
-	import type { FormatTemplate, TemplateProperty } from 'Providers/ProvidersSetup/shared/Types';
+	
+	import type { FormatTemplate, TemplateProperty } from "settings";
 	import type AutoClassifierPlugin from 'main';
 	import { addFrontmatterSetting, generateId } from 'frontmatter';
 	import { GetMetadataMenuApi } from 'PluginAvailability';

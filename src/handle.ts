@@ -2,7 +2,8 @@ import { isTagsFrontmatterTemplate, getTags, getContentWithoutFrontmatter, inser
 import type AutoClassifierPlugin from "main";
 import { Notice, TFile, App } from "obsidian";
 import { processAPIRequest } from "Providers/api";
-import { asOptionItem, ToOptions, type ProviderConfig, type TemplateProperty } from "Providers/ProvidersSetup/shared/Types";
+import { type ProviderConfig } from "Providers/ProvidersSetup/shared/Types";
+import { asOptionItem, ToOptions, type TemplateProperty } from "settings";
 import type { AutoClassifierSettings } from "settings";
 import { getPromptTemplate, DEFAULT_CHAT_ROLE } from "utils/templates";
 

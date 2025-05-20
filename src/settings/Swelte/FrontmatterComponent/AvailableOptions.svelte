@@ -1,11 +1,11 @@
 <script lang="ts" context="module">
-	import {
+		import {
 		type TemplateProperty,
 		type OptionsMode,
 		type FailureActionType,
 		type OptionItem,
-		ToOptions,
-	} from 'Providers/ProvidersSetup/shared/Types';
+		ToOptions
+	} from "settings";
 
 	type DispatchEvents = {
 		change: Partial<Pick<TemplateProperty, 'optionsMode' | 'options'>>;
@@ -15,8 +15,10 @@
 <script lang="ts">
 	import { createEventDispatcher, onMount } from 'svelte';
 	import { Setting, DropdownComponent, TextAreaComponent } from 'obsidian';
-	import type { OptionsMode as OptionsModeType, OptionItem as OptionItemType, FailureActionType as FailureActionTypeType } from 'Providers/ProvidersSetup/shared/Types';
-    import { ToOptions as ToOptionsFunc } from 'Providers/ProvidersSetup/shared/Types';
+	
+	import type { OptionsMode as OptionsModeType, OptionItem as OptionItemType, FailureActionType as FailureActionTypeType } from "settings";
+    
+	import { ToOptions as ToOptionsFunc } from "settings";
 
 
 	export let optionsMode: OptionsModeType;

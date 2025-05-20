@@ -8,8 +8,8 @@ import {
 	type TemplateProperty,
 	type FailureActionDefaultValue,
 	type OptionsMode,
-	ToOptions,
-} from 'Providers/ProvidersSetup/shared/Types';
+	ToOptions
+} from "settings";
 import type { AutoClassifierSettings } from 'settings';
 
 const DEFAULT_FAILURE_ACTION: FailureActionDefaultValue = {

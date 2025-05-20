@@ -1,7 +1,8 @@
 <script lang="ts">
 	import type AutoClassifierPlugin from 'main';
 	import { Setting } from 'obsidian';
-	import type { FormatTemplate } from 'Providers/ProvidersSetup/shared/Types';
+	
+	import type { FormatTemplate } from "settings";
 	import { createEventDispatcher, getContext, onMount } from 'svelte';
 	import { AutoClassifierPluginKey } from './context-keys';
 	import { arraySwap } from 'utils/arraySwap';

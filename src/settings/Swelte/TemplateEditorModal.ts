@@ -1,7 +1,7 @@
 import { App, Modal } from 'obsidian';
 import type AutoClassifierPlugin from 'main';
 import TemplateEditor from './FrontmatterComponent/TemplateEditor.svelte';
-import type { FormatTemplate } from 'Providers/ProvidersSetup/shared/Types';
+import type { FormatTemplate } from "settings";
 
 export class TemplateEditorModal extends Modal {
     component: TemplateEditor;

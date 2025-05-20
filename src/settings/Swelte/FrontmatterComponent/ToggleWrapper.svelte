@@ -1,7 +1,8 @@
 <script lang="ts">
   import { onMount, onDestroy, createEventDispatcher } from 'svelte';
   import FrontmatterCard from './FrontmatterCard.svelte';
-  import type { TemplateProperty } from 'Providers/ProvidersSetup/shared/Types';
+  
+  import type { TemplateProperty } from "settings";
 
 
   export let item: TemplateProperty; 

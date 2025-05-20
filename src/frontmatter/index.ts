@@ -1,5 +1,5 @@
 import { getFrontMatterInfo, TFile, MetadataCache, getAllTags } from "obsidian";
-import type { FormatTemplate, TemplateProperty } from "Providers/ProvidersSetup/shared/Types";
+import type { FormatTemplate, TemplateProperty } from "settings";
 import type { LinkType, ProcessFrontMatterFn, InsertFrontMatterParams, FrontMatter } from "utils/interface";
 
 export const generateId = (): number => {

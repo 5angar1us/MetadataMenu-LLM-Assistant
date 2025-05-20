@@ -21,9 +21,8 @@
 	import CountInput from './CountInput.svelte';
 	import DeleteButton from './DeleteButton.svelte';
 	import AvailableOptions from './AvailableOptions.svelte';
-	import type {
-		TemplateProperty,
-	} from 'Providers/ProvidersSetup/shared/Types';
+	
+	import type { TemplateProperty } from "settings";
 	import type AutoClassifierPlugin from 'main';
 	import { AutoClassifierPluginKey } from '../context-keys';
 	import RelevanceSettings from 'settings/Swelte/FrontmatterComponent/RelevanceSettings.svelte';

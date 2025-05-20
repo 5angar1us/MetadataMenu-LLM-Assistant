@@ -13,14 +13,15 @@
 		TextComponent,
 		ButtonComponent,
 	} from 'obsidian';
+	
 	import type {
 		TemplateProperty,
 		FailureAction,
 		FailureActionType,
 		FailureActionDefaultValue,
 		FailureActionSetOtherProperty,
-		FailureActionMoveToFolder,
-	} from 'Providers/ProvidersSetup/shared/Types';
+		FailureActionMoveToFolder
+	} from "settings";
 	import type AutoClassifierPlugin from 'main';
 	import { AutoClassifierPluginKey } from 'settings/Swelte/context-keys';
 
