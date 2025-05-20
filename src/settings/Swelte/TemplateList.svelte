@@ -14,8 +14,9 @@
 
 	function addElement() {
 		const modal = new TemplateEditorModal(plugin.app, plugin, (newFormatTemplate) => {
-			plugin.settings.formatTemplates.push(newFormatTemplate);
-			templates = plugin.settings.formatTemplates;
+			const updatedFormatTemplates = [...plugin.settings.formatTemplates, newFormatTemplate];
+			plugin.settings.formatTemplates = updatedFormatTemplates;
+			templates = updatedFormatTemplates;
 			plugin.saveSettings();
 		});
 		modal.open();
@@ -23,8 +24,11 @@
 
 	function editElement(template: FormatTemplate, index: number) {
 		const onSubmit = (newFormatTemplate: FormatTemplate) => {
-			plugin.settings.formatTemplates[index] = newFormatTemplate;
-			templates = plugin.settings.formatTemplates;
+			const updatedFormatTemplates = plugin.settings.formatTemplates.map((fmt, i) => 
+				i === index ? newFormatTemplate : fmt
+			);
+			plugin.settings.formatTemplates = updatedFormatTemplates;
+			templates = updatedFormatTemplates;
 			plugin.saveSettings();
 		};
 
@@ -33,20 +37,25 @@
 	}
 
 	async function moveUpElement(index: number) {
-		arraySwap(plugin.settings.formatTemplates, index, index - 1);
-		templates = plugin.settings.formatTemplates;
+		const newArray = [...plugin.settings.formatTemplates];
+		arraySwap(newArray, index, index - 1);
+		plugin.settings.formatTemplates = newArray;
+		templates = newArray;
 		await plugin.saveSettings();
 	}
 
 	async function moveDownElement(index: number) {
-		arraySwap(plugin.settings.formatTemplates, index, index + 1);
-		templates = plugin.settings.formatTemplates;
+		const newArray = [...plugin.settings.formatTemplates];
+		arraySwap(newArray, index, index + 1);
+		plugin.settings.formatTemplates = newArray;
+		templates = newArray;
 		await plugin.saveSettings();
 	}
 
 	async function deleteElement(index: number) {
-		plugin.settings.formatTemplates.splice(index, 1);
-		templates = plugin.settings.formatTemplates;
+		const updatedFormatTemplates = plugin.settings.formatTemplates.filter((_, i) => i !== index);
+		plugin.settings.formatTemplates = updatedFormatTemplates;
+		templates = updatedFormatTemplates;
 		await plugin.saveSettings();
 	}
 
