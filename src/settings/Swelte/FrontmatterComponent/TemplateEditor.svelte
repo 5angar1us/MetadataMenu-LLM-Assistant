@@ -5,7 +5,7 @@
 	
 	import type { FormatTemplate, TemplateProperty } from "settings";
 	import type AutoClassifierPlugin from 'main';
-	import { addFrontmatterSetting, generateId } from 'frontmatter';
+	import { addFrontmatterSetting } from 'frontmatter';
 	import { GetMetadataMenuApi } from 'PluginAvailability';
 	import { AutoClassifierPluginKey } from '../context-keys';
 	import ToggleWrapper from './ToggleWrapper.svelte';
@@ -13,14 +13,10 @@
 	import type { SettingsChangeEvent, DeleteFrontmatter } from './FrontmatterCard.svelte';
 
 	export let plugin: AutoClassifierPlugin;
-	export let onSubmit: (format: FormatTemplate) => void;
-	export let formatTemplate: FormatTemplate = {
-		id: generateId(),
-		name: '',
-		sourceNotePath: '',
-		controlFieldValue: '',
-		frontmatters: [],
-	};
+	export let onUpdate: (format: FormatTemplate) => void; 
+	export let initialFormatTemplate: FormatTemplate;
+
+	let formatTemplate = initialFormatTemplate;
 
 	let outputText = '';
 	let templateNameContainer: HTMLElement;
@@ -43,7 +39,7 @@
 						.setValue(formatTemplate.name)
 						.onChange(async (value) => {
 							formatTemplate.name = value;
-							onSubmit(formatTemplate);
+							onUpdate(formatTemplate);
 						});
 				});
 		}
@@ -122,21 +118,19 @@
 			outputText = '';
 		}
 	}
+	
+	// Reactive selectedFile derived from formatTemplate
+	$: selectedFile = formatTemplate.sourceNotePath || '';
 
-	// Reactive statement to handle toggling of showDebugOutput
+	// Reactive statement to handle toggling of showDebugOutput for outputText
 	$: if (plugin?.settings) {
-		// Ensure plugin and settings are available
-		// This will re-trigger updateSourceDataAndDebugOutput if selectedFile exists,
-		// or set a default message, effectively updating outputText based on showDebugOutput.
-		updateSourceData(selectedFile);
+		updateSourceData(selectedFile); 
 	}
-	let selectedFile = formatTemplate.sourceNotePath || '';
+
 
 	function handleFileChange(filePath: string) {
-		selectedFile = filePath;
-		updateSourceData(selectedFile);
 		formatTemplate.sourceNotePath = filePath;
-		onSubmit(formatTemplate);
+		onUpdate(formatTemplate);
 	}
 
 	async function handleSettingsChange(event: SettingsChangeEvent) {
@@ -148,7 +142,7 @@
 		const newFrontmatters = [...formatTemplate.frontmatters];
 		newFrontmatters[index] = updatedFrontmatter;
 		formatTemplate.frontmatters = newFrontmatters;
-		onSubmit(formatTemplate);
+		onUpdate(formatTemplate);
 	}
 
 	async function handleDelete(event: DeleteFrontmatter) {
@@ -160,14 +154,13 @@
 		}
 
 		formatTemplate.frontmatters = formatTemplate.frontmatters.filter((f) => f.id !== frontmatterId);
-
-		onSubmit(formatTemplate);
+		onUpdate(formatTemplate); 
 	}
 
 	async function addNewFrontmatter() {
 		const newSetting = addFrontmatterSetting();
 		formatTemplate.frontmatters = [...formatTemplate.frontmatters, newSetting];
-		onSubmit(formatTemplate);
+		onUpdate(formatTemplate);
 	}
 
 	// Functions to control all FrontmatterCard components
