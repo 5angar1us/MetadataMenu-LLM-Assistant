@@ -171,43 +171,16 @@
 		}
 	});
 
-	// Update local state if props change from parent
+	
 	$: {
-		if (failureAction) {
-			const isDifferentType = failureAction.type !== currentFailureAction.type;
-			let isDifferentPayload = false;
+    if (failureAction && failureAction.type !== currentFailureAction.type) {
+        currentFailureAction = { ...failureAction };
 
-			switch (failureAction.type) {
-				case 'default-value':
-					isDifferentPayload =
-						(failureAction as FailureActionDefaultValue).value !==
-						(currentFailureAction as FailureActionDefaultValue).value;
-					break;
-
-				case 'set-other-property':
-					const setPropAction = failureAction as FailureActionSetOtherProperty;
-					const currentSetProp = currentFailureAction as FailureActionSetOtherProperty;
-					isDifferentPayload =
-						setPropAction.targetKey !== currentSetProp.targetKey ||
-						setPropAction.targetValue !== currentSetProp.targetValue;
-					break;
-
-				case 'move-to-folder':
-					isDifferentPayload =
-						(failureAction as FailureActionMoveToFolder).folder !==
-						(currentFailureAction as FailureActionMoveToFolder).folder;
-					break;
-			}
-
-			if (isDifferentType || isDifferentPayload) {
-				currentFailureAction = { ...failureAction };
-
-				if (failureActionInputsContainerEl) {
-					renderFailureActionInputs();
-				}
-			}
-		}
-	}
+        if (failureActionInputsContainerEl) {
+            renderFailureActionInputs();
+        }
+    }
+}
 
 	$: {
 		if (sliderComponentInstance) {
