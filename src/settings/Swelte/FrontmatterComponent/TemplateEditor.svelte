@@ -184,11 +184,14 @@
 	<FileInput
 		value={selectedFile}
 		placeholder="Search for a file..."
-		label="Target File"
-		description="Select the file to apply frontmatter to"
+		label="File Class"
+		description=
+		"This file serves as a source of settings. It is not a service file of the Metadata Menu plugin, but a created 
+		note file with the specified FileClass field. This is done specifically due to the limitations of the Metadata Menu plugin API."
 		app={plugin.app}
 		onChange={handleFileChange}
 	/>
+	
 	{#if plugin.settings.showDebugOutput}
 		{#if outputText}
 			<div class="output-textarea">

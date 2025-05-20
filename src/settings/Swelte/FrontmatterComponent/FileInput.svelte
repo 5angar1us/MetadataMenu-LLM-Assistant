@@ -18,9 +18,11 @@
 
 		settingEl.empty();
 
-		const setting = new Setting(settingEl)
+		new Setting(settingEl)
 			.setName(label)
 			.setDesc(description)
+			.setHeading();
+		new Setting(settingEl)
 			.addSearch((cb) => {
 				search = cb;
 
@@ -33,7 +35,11 @@
 						value = newValue;
 						onChange(newValue);
 					});
-			});
+				//cb.inputEl.classList.add('-input');
+				// @ts-ignore
+                cb.containerEl.addClass('full-width');
+			})
+			.infoEl.remove();
 	}
 
 	onMount(() => {
@@ -46,3 +52,8 @@
 </script>
 
 <div bind:this={settingEl}></div>
+
+<style>
+
+
+</style>
