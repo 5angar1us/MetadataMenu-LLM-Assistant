@@ -2,7 +2,8 @@ import { App, Modal } from 'obsidian';
 import type AutoClassifierPlugin from 'main';
 import TemplateEditor from './FrontmatterComponent/TemplateEditor.svelte';
 import type { FormatTemplate } from "settings";
-import { generateId } from 'frontmatter'; // Ensure generateId is imported
+import { generateId } from 'frontmatter';
+import { typeDeepCopy } from 'utils/typeDeepCopy';
 
 export class TemplateEditorModal extends Modal {
     component: TemplateEditor;
@@ -31,8 +32,7 @@ export class TemplateEditorModal extends Modal {
             frontmatters: [],
         };
         
-        // Deep copy to ensure modal edits don't affect original object until confirmed
-        this.currentDraftTemplate = JSON.parse(JSON.stringify(baseTemplate));
+        this.currentDraftTemplate = typeDeepCopy(baseTemplate);
 
         this.component = new TemplateEditor({
             target: container,
