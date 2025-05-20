@@ -20,6 +20,12 @@
 
 	const tabs: Tab[] = [
 		{
+			id: 'TemplateSettings',
+			title: 'Tempaltes',
+			componentClass: TemplateSettings,
+			component: null
+		},
+		{
 			id: 'apiSettings',
 			title: 'API Settings',
 			componentClass: ApiSettings,
@@ -31,12 +37,7 @@
 		// 	componentClass: FrontmatterManager,
 		// 	component: null,
 		// },
-		{
-			id: 'TemplateSettings',
-			title: 'Tempaltes',
-			componentClass: TemplateSettings,
-			component: null
-		}
+		
 	];
 
 	let activeTabId = tabs[0].id;
