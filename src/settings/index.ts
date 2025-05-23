@@ -3,6 +3,7 @@ import { PluginSettingTab, setIcon } from 'obsidian';
 import type { ProviderConfig } from 'Providers/ProvidersSetup/shared/Types';
 import type { ComponentType, SvelteComponent } from 'svelte';
 import TabsManager from './Swelte/TabsManager.svelte';
+import type { RichField } from 'types/metadataMenuUtils';
 
 
 export interface AutoClassifierSettings {
@@ -148,11 +149,13 @@ export interface TemplateProperty {
 	id: number; // uuid
 	key: string; // frontmatter key
 	overwrite: boolean;
-	count?: number; // >=0, if the type supports multiple values
+	MaxCount?: number; // >=0, if the type supports multiple values
 	relevance?: number; // 0…1, specific relevance threshold for this property
 	failureAction: FailureAction; // Action to take if relevance threshold is not met
 	optionsMode: OptionsMode; // How the 'options' array is to be interpreted
 	options?: OptionItem[]; // List of predefined values (e.g., for dropdowns, validation)
+	whitelist?: OptionItem[],
+	blacklist?: OptionItem[],
 	optionsDescription?: string; // Free text description for the options (e.g., explaining their source or purpose)
 }
 
@@ -162,6 +165,7 @@ export interface FormatTemplate {
 	sourceNotePath: string; // «Источник свойств»
 	controlFieldValue: string; // «Значение управляющего поля» (readonly)
 	frontmatters: TemplateProperty[];
+	RichField?: RichField[];
 }
 
 export * from './WikiLinkSuggestModal';

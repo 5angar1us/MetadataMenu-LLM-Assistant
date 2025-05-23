@@ -8,7 +8,7 @@
 	} from "settings";
 
 	type DispatchEvents = {
-		change: Partial<Pick<TemplateProperty, 'optionsMode' | 'options'>>;
+		change: Partial<Pick<TemplateProperty, 'optionsMode' | 'options' | 'whitelist' | "blacklist" >>;
 	};
 </script>
 
@@ -80,15 +80,61 @@
             .map((s) => s.trim())
             .filter((s) => s !== '');
         
-
-        frontmatterSetting.options = ToOptionsFunc(newOptionsArray);
-        dispatch('change', { options: frontmatterSetting.options });
+            handleDispatch(newOptionsArray);
         
         if (optionsDescriptionEl) {
             optionsDescriptionEl.textContent = getDescriptionText(newOptionsArray.length);
         }
     }
-    
+
+    function handleClearTextArea() {
+        internalOptionsString = ""
+        const newOptionsArray = [] as string[];
+
+        handleDispatch(newOptionsArray);
+        
+        if (optionsTextareaComponent) {
+            optionsTextareaComponent.setValue(internalOptionsString); // internalOptionsString is ""
+        }
+        
+        if (optionsDescriptionEl) {
+            optionsDescriptionEl.textContent = getDescriptionText(newOptionsArray.length);
+        }
+    }
+
+    function handleDispatch(newOptionsArray:string[])
+    {
+            const newOptionsAsOptionItems = ToOptionsFunc(newOptionsArray);
+            const payload: Partial<Pick<TemplateProperty, 'optionsMode' | 'options' | 'whitelist' | "blacklist" >> = {
+                options: newOptionsAsOptionItems
+            };
+
+            switch(frontmatterSetting.optionsMode){
+            case 'all':
+                // This case should not be reached if textarea is disabled for 'all' mode,
+                // as handleDispatch is for whitelist/blacklist options.
+                throw new Error("Invalid code block: handleDispatch called with 'all' mode.");
+                break;
+            case "whitelist":
+                frontmatterSetting.whitelist = newOptionsAsOptionItems;
+                frontmatterSetting.blacklist = undefined;
+
+                payload.whitelist = newOptionsAsOptionItems;
+                payload.blacklist = undefined;
+                break;
+            case "blacklist":
+                frontmatterSetting.whitelist = undefined;
+                frontmatterSetting.blacklist = newOptionsAsOptionItems;
+
+                payload.whitelist = undefined;
+                payload.blacklist = newOptionsAsOptionItems;
+                break;
+        }
+        dispatch('change', payload);
+    }
+
+
+
     function getDescriptionText(count: number): string {
         let desc = `Enter options separated by commas. Count: ${count}. `;
         if (frontmatterSetting.optionsMode === 'whitelist') {
@@ -136,8 +182,7 @@
         const currentOptionsAsStrings: string[] = (frontmatterSetting.options || []).map(String);
         const combinedOptionsAsStrings = Array.from(new Set([...currentOptionsAsStrings, ...newValuesArray]));
         
-        frontmatterSetting.options = ToOptionsFunc(combinedOptionsAsStrings);
-        dispatch('change', { options: frontmatterSetting.options });
+        handleDispatch(combinedOptionsAsStrings);
         
         textInputComponent.setValue(''); // Clear the input field
     }
@@ -157,9 +202,9 @@
                 .setDesc('Define how available options are used.');
             
             modeDropdown = new DropdownComponent(modeSetting.controlEl)
-                .addOption('all' as OptionsModeType, 'All from options')
                 .addOption('whitelist' as OptionsModeType, 'Whitelist from options')
                 .addOption('blacklist' as OptionsModeType, 'Blacklist from options')
+                .addOption('all' as OptionsModeType, 'All from options')
                 .setValue(frontmatterSetting.optionsMode)
                 .onChange(handleOptionsModeChange);
         }
@@ -191,6 +236,14 @@
                 .setButtonText("Clear Input")
                 .onClick(handleClearInputClick));
 
+            const s2 = new Setting(availableOptionsContainerEl);
+
+            s2.addButton(button => button
+                .setButtonText("Clear TextArea")
+                .onClick(handleClearTextArea)
+            )
+            s2.infoEl.remove();
+
             optionsTextareaComponent = new TextAreaComponent(availableOptionsContainerEl)
                 .setValue(internalOptionsString)
                 .setPlaceholder('option1, option2, )')
@@ -205,7 +258,7 @@
                 frontmatterSetting.key
             );
 
-            propertyValueSuggest.setTags(getAllTags(plugin.app))
+            propertyValueSuggest.setTags(getAllTags())
 
             unsubscribeGlobasourceFileFieldInfo = globasourceFileFieldInfo.subscribe(infos => {
                 currentFieldInfos = infos || [];
@@ -253,10 +306,11 @@
 <div bind:this={optionsModeContainerEl} class="options-mode-container">
 	<!-- "Available Options Mode" Dropdown will be rendered by onMount -->
 </div>
-<div bind:this={availableOptionsContainerEl} class="available-options-container">
-	<!-- "Available Options" Title, Description, TextArea will be rendered by onMount -->
-</div>
-
+{#if frontmatterSetting.optionsMode != 'all'}
+    <div bind:this={availableOptionsContainerEl} class="available-options-container">
+        <!-- "Available Options" Title, Description, TextArea will be rendered by onMount -->
+    </div>
+{/if}
 <style>
 	.options-mode-container,
 	.available-options-container {

@@ -109,8 +109,8 @@
 				/>
 
 				<CountInput
-					count={frontmatterSetting.count}
-					on:change={(e) => handleSettingsChange({ count: e.detail.newCount })}
+					count={frontmatterSetting.MaxCount}
+					on:change={(e) => handleSettingsChange({ MaxCount: e.detail.newCount })}
 				/>
 			</div>
 			

@@ -22,11 +22,11 @@ const DEFAULT_FAILURE_ACTION: FailureActionDefaultValue = {
 export const DEFAULT_FRONTMATTER_PROPERTY_SETTINGS: TemplateProperty = {
 	id: generateId(),
 	key: '',
-	count: 1,
+	MaxCount: 1,
 	overwrite: false,
 	relevance: 0.75, // Default relevance threshold for a new property
 	failureAction: { ...DEFAULT_FAILURE_ACTION },
-	optionsMode: 'all' as OptionsMode,
+	optionsMode: 'whitelist' as OptionsMode,
 	options: ToOptions([]),
 	optionsDescription: '',
 };
@@ -34,11 +34,11 @@ export const DEFAULT_FRONTMATTER_PROPERTY_SETTINGS: TemplateProperty = {
 export const DEFAULT_TAG_SETTING: TemplateProperty = {
 	id: 0, // Special ID for the default tag setting
 	key: TAG_FRONMATTER_NAME,
-	count: 5,
+	MaxCount: 1,
 	overwrite: false,
 	relevance: 0.75, // Default relevance for tags
 	failureAction: { ...DEFAULT_FAILURE_ACTION }, // Default failure action for tags
-	optionsMode: 'all' as OptionsMode,
+	optionsMode: 'whitelist' as OptionsMode,
 	options: ToOptions([]),
 	optionsDescription: '',
 	// linkType: 'Normal', // from old FrontmatterTemplate, check if needed

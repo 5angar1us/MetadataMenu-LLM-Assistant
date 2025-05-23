@@ -33,7 +33,7 @@ export const processAPIRequest = async (
 	promptTemplate: string,
 	selectedProvider: ProviderConfig,
 	selectedModel: string
-): Promise<StructuredOutput> => {
+): Promise<StructuredOutput | undefined> => {
 	try {
 		const providerInstance = getProvider(selectedProvider.name);
 		const response = await providerInstance.callAPI(
@@ -45,10 +45,7 @@ export const processAPIRequest = async (
 		return response;
 	} catch (error) {
 		ErrorHandler.handle(error as Error, `API Request Error`);
-		return {
-			output: [],
-			reliability: 0,
-		};
+		return undefined;
 	}
 };
 

@@ -1,6 +1,7 @@
 import { getFrontMatterInfo, TFile, MetadataCache, getAllTags } from "obsidian";
 import type { FormatTemplate, TemplateProperty } from "settings";
 import type { LinkType, ProcessFrontMatterFn, InsertFrontMatterParams, FrontMatter } from "utils/interface";
+import { getPluginInstance } from "utils/pluginInstance";
 
 export const generateId = (): number => {
 	return Date.now();
@@ -30,7 +31,7 @@ export const getTags = async (
 		const fileTags: string[] | null = getAllTags(cache);
 
 		if (fileTags && fileTags.length > 0) {
-			fileTags.forEach((tag) => tags.add(tag.replace('#', '')));
+			fileTags.forEach((tag) => tags.add(tag));
 		}
 
 		return tags;
@@ -38,17 +39,16 @@ export const getTags = async (
 	return [...allTags];
 };
 
-// Moved from BaseSettingsComponent
-export const getFrontmatter = (
-	id: number,
-	template: FormatTemplate
-): TemplateProperty => {
-	if (!template) {
-		throw new Error('Setting not found');
-	}
-	const setting = template.frontmatters.find((f) => f.id === id)!;
-	return setting;
-};
+export function getFrontmatter(currentFile: TFile, frontmatterName: string) {
+	const plugin = getPluginInstance();
+	const cache = plugin.app.metadataCache.getFileCache(currentFile);
+	if (!cache) return undefined
+	const frontmatters = cache.frontmatter;
+	if (!frontmatters) return undefined
+
+	return frontmatters[frontmatterName];
+}
+
 
 export const addFrontmatterSetting = (
 ): TemplateProperty => {
@@ -56,7 +56,7 @@ export const addFrontmatterSetting = (
 		id: generateId(),
 		key: '',
 		overwrite: false,
-		count: undefined,
+		MaxCount: undefined,
 		relevance: 0.75,
 		failureAction: {
 			type: "default-value",
@@ -68,32 +68,41 @@ export const addFrontmatterSetting = (
 	};
 };
 
-export const insertToFrontMatter = async (
-	processFrontMatter: ProcessFrontMatterFn,
-	params: InsertFrontMatterParams
-): Promise<void> => {
-	await processFrontMatter(params.file, (frontmatter: FrontMatter) => {
-		// Ensure values are in raw format for processing (API context)
-		const rawValues = formatValuesByLinkType(params.value, params.linkType);
 
-		const existingRawValues = frontmatter[params.key] || [];
+
+export const insertToFrontMatter = async (
+	file: TFile,
+	key: string,
+	value: string[],
+	overwrite: boolean,
+): Promise<void> => {
+	const plugin = getPluginInstance();
+
+	const processFrontMatter = (file: TFile, fn: (frontmatter: FrontMatter) => void) =>
+		plugin.app.fileManager.processFrontMatter(file, fn);
+
+	await processFrontMatter(file, (frontmatter: FrontMatter) => {
+		// Ensure values are in raw format for processing (API context)
+		const rawValues = value;
+
+		const existingRawValues = frontmatter[key] || [];
 		// Combine values based on overwrite setting
-		let combinedRawValues = params.overwrite ? rawValues : [...existingRawValues, ...rawValues];
+		let combinedRawValues = overwrite ? rawValues : [...existingRawValues, ...rawValues];
 
 		// Remove duplicates and empty strings
 		combinedRawValues = [...new Set(combinedRawValues)].filter(Boolean);
 
 		// Format back for storage context
-		frontmatter[params.key] = combinedRawValues;
+		frontmatter[key] = combinedRawValues;
 	});
 };
 
 export function formatValuesByLinkType(values: string[], linkType: LinkType = 'Normal'): string[] {
-    return linkType === 'WikiLink' 
-        ? values.map(item => `[[${item}]]`) 
-        : values;
+	return linkType === 'WikiLink'
+		? values.map(item => `[[${item}]]`)
+		: values;
 }
 
-export function isTagsFrontmatterTemplate(frontmatterTemplate: TemplateProperty){
+export function isTagsFrontmatterTemplate(frontmatterTemplate: TemplateProperty) {
 	return frontmatterTemplate.key === TAG_FRONMATTER_NAME;
 }

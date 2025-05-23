@@ -1,6 +1,6 @@
 import { isTagsFrontmatterTemplate } from "frontmatter";
-import { processFrontmatter, processAllFrontmatter } from "handle";
-import { Plugin, Notice } from "obsidian";
+import { processFrontmatters, ValidateAndProcessAllFrontmatter } from "handle";
+import { Plugin, Notice, debounce, TFile, normalizePath, TAbstractFile } from "obsidian";
 import { getAPI, type DataviewApi } from "obsidian-dataview";
 import { initPluginContext } from "obsidian-dev-utils/obsidian/Plugin/PluginContext";
 import { checkAvailabilityDataview, checkAvailabilityMetadataMenu, checkPluginAvailability, GetMetadataMenuApi, GetMetadataMenufileClassAlias as ExtractMetadataMenufileClassAlias } from "PluginAvailability";
@@ -33,69 +33,75 @@ export default class AutoClassifierPlugin extends Plugin {
 		const mmapi = GetMetadataMenuApi(this.app);
 
 		this.addSettingTab(new AutoClassifierSettingTab(this));
-		
-		if(this.settings.isDebug){
+
+		if (this.settings.isDebug) {
 			testQuery()
 		}
+
+		this.app.workspace.onLayoutReady(() => {
+			this.registerEvent(
+				this.app.vault.on('create',
+					(file) => {
+						if (file instanceof TFile && this.isNeedProcessFile(file)) {
+							debounce(ValidateAndProcessAllFrontmatter, 200, true)(file);
+						}
+					}
+				));
+			this.registerEvent(
+				this.app.metadataCache.on('changed',
+					(file) => {
+						if (file instanceof TFile && this.isNeedProcessFile(file)) {
+							debounce(ValidateAndProcessAllFrontmatter, 200, true)(file);
+						}
+					}
+				));
+			this.registerEvent(
+				this.app.vault.on('rename',
+					(file, oldPath) => {
+						if (file instanceof TFile && this.isNeedProcessFile(file)) {
+							debounce(ValidateAndProcessAllFrontmatter, 200, true)(file);
+						}
+					}
+				));
+		});
+
 	}
 
 
 
 	setupCommand() {
-		// 단일 프론트매터 처리 명령
-		this.addCommand({
-			id: 'fetch-specific-frontmatter',
-			name: 'Fetch specific frontmatter',
-			callback: async () => {
-				// 현재 설정된 모든 프론트매터 목록을 표시하는 모달
-				const frontmatters = this.settings.frontmatter
-					.filter((fm) => !isTagsFrontmatterTemplate(fm)) // 내장 태그는 별도로 처리
-					.map((fm) => ({
-						name: fm.key,
-						id: fm.id,
-					}));
 
-				if (frontmatters.length === 0) {
-					new Notice('No frontmatter settings defined. Please add some in settings.');
-					return;
-				}
-
-				// 간단한 선택 모달 표시
-				const modal = new SelectFrontmatterModal(
-					this.app,
-					frontmatters,
-					async (selected: number | null) => {
-						if (selected !== null) {
-							await processFrontmatter(this, selected);
-						}
-					}
-				);
-				modal.open();
-			},
-		});
-
-		// 태그 프론트매터 처리를 위한 별도 명령
-		this.addCommand({
-			id: 'fetch-tags',
-			name: 'Fetch frontmatter: tags',
-			callback: async () => {
-				const tagsFrontmatter = this.settings.frontmatter.find((fm) => isTagsFrontmatterTemplate(fm));
-				if (tagsFrontmatter) {
-					await processFrontmatter(this, tagsFrontmatter.id);
-				} else {
-					new Notice('Tags frontmatter not found.');
-				}
-			},
-		});
-
-		// 모든 프론트매터 처리 명령
 		this.addCommand({
 			id: 'fetch-all-frontmatter',
 			name: 'Fetch all frontmatter using current provider',
 			callback: async () => {
-				await processAllFrontmatter(this);
+
+				const currentFile = this.app.workspace.getActiveFile();
+				if (!currentFile) {
+					new Notice('No active file.');
+					return;
+				}
+				await ValidateAndProcessAllFrontmatter(currentFile);
 			},
 		});
+	}
+
+	isNeedProcessFile(file: TFile) {
+		return this.settings.autoProcessingEnabled && this.isFileInAutoProcessFolder(file)
+	}
+
+	isFileInAutoProcessFolder(
+		file: TFile,
+	): boolean {
+		if (!file.parent) return false;
+
+		const parentFolderPath = normalizePath(file.parent.path);
+		const targetFolderPath = normalizePath(this.settings.autoProcessingFolderPath);
+
+		return (
+			parentFolderPath === targetFolderPath ||
+			parentFolderPath.startsWith(targetFolderPath + '/')
+		);
 	}
 
 
