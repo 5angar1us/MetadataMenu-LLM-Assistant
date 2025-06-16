@@ -1,15 +1,15 @@
-import { isTagsFrontmatterTemplate } from "frontmatter";
-import { processFrontmatters, ValidateAndProcessAllFrontmatter } from "handle";
+import { isTagsFrontmatterTemplate } from "MetadataEnricher/frontmatter";
+import { processFrontmatters, ValidateAndProcessAllFrontmatter } from "MetadataEnricher/handle";
 import { Plugin, Notice, debounce, TFile, normalizePath, TAbstractFile } from "obsidian";
 import { getAPI, type DataviewApi } from "obsidian-dataview";
 import { initPluginContext } from "obsidian-dev-utils/obsidian/Plugin/PluginContext";
 import { checkAvailabilityDataview, checkAvailabilityMetadataMenu, checkPluginAvailability, GetMetadataMenuApi, GetMetadataMenufileClassAlias as ExtractMetadataMenufileClassAlias } from "PluginAvailability";
-import { type AutoClassifierSettings, AutoClassifierSettingTab, SelectFrontmatterModal } from "settings";
-import { DEFAULT_SETTINGS } from "settings/DefaultSettings";
-import { convertDvjsToDvQuery } from "utils/DataviewQueryConverter";
-import { testQuery } from "utils/DataviewQuryConverterTests";
-import { mergeDefaults } from "utils/merge-settings";
+import { convertDvjsToDvQuery } from "MetadataMenuOptionsResolver/DataviewQueryConverter";
+import { testQuery } from "MetadataMenuOptionsResolver/DataviewQuryConverterTests";
+import { mergeDefaults } from "merge-settings";
 import { setPluginInstance } from "utils/pluginInstance";
+import { AutoClassifierSettingTab, type AutoClassifierSettings } from "settingsUI";
+import { DEFAULT_SETTINGS } from "settingsUI/DefaultSettings";
 
 
 export default class AutoClassifierPlugin extends Plugin {
